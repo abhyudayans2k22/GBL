@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>GBL 26</title>
+    <title>GBL</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; background-color: #000; }
@@ -99,6 +99,50 @@
     </style>
 </head>
 <body>
+
+    <!-- ── LOADING SCREEN ── -->
+<div id="loadingScreen" style="
+    position: fixed; inset: 0; z-index: 9999;
+    background: #000;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.8s ease;
+">
+    <div style="
+        font-size: 72px;
+        animation: spinBall 0.9s linear infinite;
+        filter: drop-shadow(0 0 20px rgba(255,204,0,0.5));
+        line-height: 1;
+    ">🏀</div>
+    <div style="
+        color: rgba(255,255,255,0.35);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+    ">Loading...</div>
+</div>
+
+<style>
+    @keyframes spinBall {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    const _loadStart = performance.now();
+    window.addEventListener('load', () => {
+        const elapsed = performance.now() - _loadStart;
+        const remaining = Math.max(0, 1000 - elapsed);
+        setTimeout(() => {
+            const screen = document.getElementById('loadingScreen');
+            screen.style.opacity = '0';
+            setTimeout(() => screen.style.display = 'none', 800);
+        }, remaining);
+    });
+</script>
 
 <div class="tabs-container" id="tabsContainer">
 
