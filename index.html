@@ -1,0 +1,630 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>GBL 26</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; background-color: #000; }
+
+html { height: -webkit-fill-available; }
+body { min-height: -webkit-fill-available; }
+
+        .tabs-container {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    align-items: stretch;
+    background: #000;
+}
+
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        .tab-content {
+    width: 100vw;
+    height: 100vh;
+    min-height: -webkit-fill-available;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+    position: relative;
+    display: block;
+    color: white;
+    overflow: hidden;
+}
+        .tab-content h1 { font-size: 3rem; font-weight: 800; letter-spacing: 2px; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+
+        #home, #home-s1, #home-s3 { background: linear-gradient(135deg, #111827, #1f2937); }
+        #live, #live-s1, #live-s3 { background: #000000; }
+        #results, #results-s1, #results-s3 { background: #0a0a14; }
+        #standings, #standings-s1, #standings-s3 { background: linear-gradient(135deg, #0a0a1a, #0d0d2b); }
+
+        .nav-bar-outer { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 380px; height: 65px; z-index: 100; background: rgba(255,255,255,0.04); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; align-items: center; }
+        .nav-scroller { display: flex; align-items: center; width: 100%; height: 100%; overflow-x: hidden; position: relative; }
+        .nav-item { padding: 0 24px; white-space: nowrap; text-align: center; color: rgba(255,255,255,0.35); font-size: 0.8rem; font-weight: 700; letter-spacing: 1px; cursor: pointer; transition: color 0.3s ease, text-shadow 0.3s ease, transform 0.3s ease; background: none; border: none; outline: none; display: inline-block; flex-shrink: 0; touch-action: manipulation; }
+        .nav-item.active { color: #ffffff; transform: scale(1.1); text-shadow: 0 0 8px rgba(255,255,255,0.6), 0 0 18px rgba(255,255,255,0.3); }
+
+        @keyframes cardFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+        @keyframes pulseRing { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(3.2);opacity:0} }
+
+        /* ── STANDINGS PAGE STYLES ── */
+        .standings-scroll {
+            position: absolute; inset: 0;
+            overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            /* FIX 1: Allow vertical scroll ONLY within this inner div */
+            touch-action: pan-y;
+        }
+        .standings-scroll::-webkit-scrollbar { display: none; }
+        .standings-inner {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 20px; padding: 60px 20px 140px 20px;
+            max-width: 700px; margin: 0 auto;
+        }
+        .standings-page-title {
+            font-size: 36px; font-weight: 900; letter-spacing: -1px;
+            text-transform: uppercase; color: #FFCC00;
+            text-shadow: 2px 2px 0 #000, 4px 4px 0 #000;
+            -webkit-text-stroke: 0.5px #000; text-align: center;
+        }
+        .glass-card {
+            width: 100%; background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+            padding: 1.25rem; box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .card-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: rgba(255,255,255,0.9); letter-spacing: 0.5px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { color: rgba(255,255,255,0.4); font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        td { padding: 0.75rem 0; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+        tr:last-child td { border-bottom: none; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .col-rank { width: 10%; color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+        .col-pct { font-weight: 700; color: #FFCC00; }
+        .col-pts-val { font-weight: 700; color: #fff; }
+        .show-more-btn {
+            width: 100%; padding: 10px; border-radius: 10px;
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 700;
+            letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+            margin-top: 10px; transition: background 0.2s;
+        }
+        .show-more-btn:hover { background: rgba(255,255,255,0.1); }
+        .hidden-row { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="tabs-container" id="tabsContainer">
+
+    <!-- BUFFER SET 1 — no IDs, static display only -->
+    <!-- BUFFER SET 1 — no IDs, static display only -->
+    <section id="home-s1" class="tab-content" style="background:#000;"></section>
+
+    <section id="live-s1" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:24px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Live Scores</div>
+                <div style="width:90%;max-width:440px;border-radius:24px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;gap:12px;">
+                    <div style="font-size:36px;opacity:0.5;">📡</div>
+                    <div style="color:#6c7075;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No Live Events</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="results-s1" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Results</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">Basketball · All Matches</div>
+                <div style="width:90%;max-width:440px;border-radius:20px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
+                    <div style="font-size:36px;opacity:0.4;">🏀</div>
+                    <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No finished matches yet</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="standings-s1" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:60px 20px 140px 20px;">
+                <div style="font-size:36px;font-weight:900;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000;">Standings</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════
+         ACTIVE MIDDLE SET 2 — only set with real IDs
+    ═══════════════════════════════════════════ -->
+    <section id="home" class="tab-content" style="overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+        <!-- HERO: background image fills exactly one screen -->
+        <div id="homehero" style="position:relative;width:100%;height:100vh;flex-shrink:0;overflow:hidden;will-change:transform;">
+            <img id="heroBg" src="https://i.ibb.co/Nnt4wTdZ/download-7.jpg"
+                 style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;will-change:transform;transform-origin:center center;" alt="">
+            <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
+            <div id="heroLogo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);will-change:transform;display:flex;align-items:center;justify-content:center;">
+                <img src="https://i.ibb.co/JF8QyMRn/CDA6-D670-E2-B7-46-AF-B471-654-BEF01-A556.png"
+                     style="width:200px;height:200px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,204,0,0.6));border-radius:50%;" alt="Logo">
+            </div>
+        </div>
+        <!-- BLACK CONTENT SECTION -->
+        <div style="width:100%;background:#000;padding:60px 24px 140px;display:flex;flex-direction:column;align-items:center;gap:24px;">
+            <h2 style="font-size:2.2rem;font-weight:900;text-transform:uppercase;text-align:center;color:#FFCC00;letter-spacing:-1px;text-shadow:2px 2px 0 #000,4px 4px 0 rgba(0,0,0,0.5);line-height:1.1;">GEMS Ballers League</h2>
+            <p style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;max-width:500px;text-align:center;font-weight:400;">Basketball is more than a game — it is a language spoken in sweat, sacrifice, and soaring ambition. Every dribble carries a story, every shot a dream. The GEMS Ballers League was born from that very fire: to give athletes a stage worthy of their grind, a court where rivalries ignite and legends are forged. This is not just a tournament. This is a movement — a celebration of skill, teamwork, and the relentless pursuit of greatness that defines every true baller.</p>
+        </div>
+        <script>
+            (function(){
+                const section = document.getElementById('home');
+                const heroBg  = document.getElementById('heroBg');
+                const heroLogo= document.getElementById('heroLogo');
+                if(!section||!heroBg||!heroLogo) return;
+                function onScroll(){
+                    const scrollY = section.scrollTop;
+                    // Parallax: bg moves up at 40% scroll speed (slower than content)
+                    heroBg.style.transform = `translateY(${scrollY * 0.4}px)`;
+                    // Logo moves up slightly faster than bg for depth
+                    heroLogo.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.25}px))`;
+                }
+                section.addEventListener('scroll', onScroll, {passive:true});
+            })();
+        </script>
+    </section>
+
+    <section id="live" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:24px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Live Scores</div>
+                <div id="noLiveBox" style="width:90%;max-width:440px;">
+                    <div style="width:100%;border-radius:24px;padding:40px 20px;background:rgba(15,15,22,0.6);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);box-shadow:2px 2px 0 #000,4px 4px 0 #000,0 20px 40px rgba(0,0,0,0.65);display:flex;flex-direction:column;align-items:center;gap:12px;">
+                        <div style="font-size:36px;opacity:0.5;">📡</div>
+                        <div style="color:#6c7075;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No Live Events</div>
+                        <div style="color:#b0b3b8;font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;">Being Recorded</div>
+                    </div>
+                </div>
+                <div id="basketballCardWrap" style="width:90%;max-width:440px;display:none;"></div>
+                <div style="display:flex;justify-content:center;">
+                    <button onclick="document.getElementById('refreshIcon').style.transform='rotate(360deg)';setTimeout(()=>{document.getElementById('refreshIcon').style.transition='none';document.getElementById('refreshIcon').style.transform='rotate(0deg)';setTimeout(()=>{document.getElementById('refreshIcon').style.transition='transform 0.5s';},50);},520);window.dispatchEvent(new CustomEvent('liveRefreshRequested'));" style="background:rgba(20,20,28,0.72);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,0.12);border-radius:50px;padding:10px 26px;color:rgba(255,255,255,0.75);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;gap:8px;">
+                        <span id="refreshIcon" style="font-size:14px;display:inline-block;transition:transform 0.5s;">↻</span>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="results" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div id="resultsInnerContent" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Results</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">Basketball · All Matches</div>
+                <div id="noResultsBox" style="width:90%;max-width:440px;border-radius:20px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
+                    <div style="font-size:36px;opacity:0.4;">🏀</div>
+                    <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No finished matches yet</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STANDINGS — middle set with real IDs -->
+    <section id="standings" class="tab-content">
+        <div class="standings-scroll">
+            <div class="standings-inner">
+                <div class="standings-page-title">Standings</div>
+
+                <!-- TEAM STANDINGS TABLE -->
+                <div class="glass-card">
+                    <h2 class="card-title">Team Standings</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-rank">#</th>
+                                <th>Team</th>
+                                <th class="text-center">W</th>
+                                <th class="text-center">L</th>
+                                <th class="text-right">PCT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standingsTableBody">
+                            <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- LEADING SCORERS TABLE -->
+                <div class="glass-card">
+                    <h2 class="card-title">Leading Scorers</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-rank">#</th>
+                                <th>Player</th>
+                                <th class="text-center">Team</th>
+                                <th class="text-right">PTS</th>
+                                <th class="text-right" style="color:rgba(250, 248, 242, 0.6);">PPG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scorersTableBody">
+                            <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                    <button class="show-more-btn" id="showMoreBtn" style="display:none;" onclick="toggleScorers()">Show more</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- BUFFER SET 3 — no IDs, static display only -->
+    <!-- BUFFER SET 3 — no IDs, static display only -->
+    <section id="home-s3" class="tab-content" style="background:#000;"></section>
+
+    <section id="live-s3" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:24px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Live Scores</div>
+                <div style="width:90%;max-width:440px;border-radius:24px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;align-items:center;gap:12px;">
+                    <div style="font-size:36px;opacity:0.5;">📡</div>
+                    <div style="color:#6c7075;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No Live Events</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="results-s3" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:80px 20px 160px 20px;">
+                <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Results</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">Basketball · All Matches</div>
+                <div style="width:90%;max-width:440px;border-radius:20px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
+                    <div style="font-size:36px;opacity:0.4;">🏀</div>
+                    <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No finished matches yet</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="standings-s3" class="tab-content">
+        <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:20px;padding:60px 20px 140px 20px;">
+                <div style="font-size:36px;font-weight:900;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000;">Standings</div>
+            </div>
+        </div>
+    </section>
+
+</div><!-- /tabsContainer -->
+
+<nav class="nav-bar-outer">
+    <div class="nav-scroller" id="navScroller">
+        <button class="nav-item" data-target="home"      data-index="0">HOME</button>
+        <button class="nav-item" data-target="live"      data-index="1">LIVE</button>
+        <button class="nav-item" data-target="results"   data-index="2">RESULTS</button>
+        <button class="nav-item" data-target="standings" data-index="3">STANDINGS</button>
+        <button class="nav-item active" data-target="home"      data-index="4">HOME</button>
+        <button class="nav-item" data-target="live"      data-index="5">LIVE</button>
+        <button class="nav-item" data-target="results"   data-index="6">RESULTS</button>
+        <button class="nav-item" data-target="standings" data-index="7">STANDINGS</button>
+        <button class="nav-item" data-target="home"      data-index="8">HOME</button>
+        <button class="nav-item" data-target="live"      data-index="9">LIVE</button>
+        <button class="nav-item" data-target="results"   data-index="10">RESULTS</button>
+        <button class="nav-item" data-target="standings" data-index="11">STANDINGS</button>
+    </div>
+</nav>
+
+<!-- ── NAV SCRIPT ── -->
+<script>
+    const tabsContainer = document.getElementById('tabsContainer');
+    const navScroller   = document.getElementById('navScroller');
+    const navItems      = document.querySelectorAll('.nav-item');
+    let scrollTimeout, currentActiveIndex = 4;
+    const indexMap = { home:[0,4,8], live:[1,5,9], results:[2,6,10], standings:[3,7,11] };
+
+    function getClosestTargetIndex(name, cur) {
+        const idx = indexMap[name]; if (!idx) return cur;
+        return idx.reduce((cl,i) => Math.abs(i-cur)<Math.abs(cl-cur)?i:cl, idx[0]);
+    }
+    function getCenteredScrollOffset(i) {
+        const b = navItems[i]; if (!b) return 0;
+        return b.offsetLeft + b.offsetWidth/2 - navScroller.clientWidth/2;
+    }
+    function updateNavPadding() {
+        const w = navScroller.clientWidth; if (!w||!navItems.length) return;
+        navScroller.style.paddingLeft  = `${w/2 - navItems[0].offsetWidth/2}px`;
+        navScroller.style.paddingRight = `${w/2 - navItems[navItems.length-1].offsetWidth/2}px`;
+    }
+    function jumpTo(i) {
+        tabsContainer.style.scrollBehavior = 'auto';
+        tabsContainer.scrollLeft = i * tabsContainer.clientWidth;
+        tabsContainer.style.scrollBehavior = '';
+    }
+    function setActive(i) { navItems.forEach(b=>b.classList.toggle('active',+b.dataset.index===i)); }
+    function handleScrollStop() {
+        const w = tabsContainer.clientWidth, i = Math.round(tabsContainer.scrollLeft/w);
+        const r = (i%4)+4; if (i!==r) jumpTo(r);
+    }
+
+    tabsContainer.addEventListener('scroll', () => {
+        const w = tabsContainer.clientWidth; if (!w) return;
+        const x = tabsContainer.scrollLeft/w, base=Math.floor(x), frac=x-base;
+        navScroller.scrollLeft = getCenteredScrollOffset(base)+(getCenteredScrollOffset(base+1)-getCenteredScrollOffset(base))*frac;
+        const i = Math.round(x);
+        if (i!==currentActiveIndex) { currentActiveIndex=i; setActive(i); }
+        clearTimeout(scrollTimeout); scrollTimeout=setTimeout(handleScrollStop,80);
+    });
+    if ('onscrollend' in window) tabsContainer.addEventListener('scrollend',()=>{clearTimeout(scrollTimeout);handleScrollStop();});
+
+    navItems.forEach(btn => btn.addEventListener('click', () => {
+        const cur = Math.round(tabsContainer.scrollLeft/tabsContainer.clientWidth);
+        tabsContainer.scrollTo({ left: getClosestTargetIndex(btn.dataset.target, cur)*tabsContainer.clientWidth, behavior:'smooth' });
+    }));
+
+    window.addEventListener('load',   () => { updateNavPadding(); jumpTo(4); });
+    // Block wheel from scrolling tabs horizontally; let inner divs scroll vertically
+    tabsContainer.addEventListener('wheel', e => {
+        // If the event target (or any ancestor up to tabsContainer) is a scrollable inner div,
+        // let it scroll normally. Only block if the wheel would move tabsContainer horizontally.
+        let el = e.target;
+        while (el && el !== tabsContainer) {
+            const style = window.getComputedStyle(el);
+            const overflowY = style.overflowY;
+            const canScroll = (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
+            if (canScroll) return; // let the inner element scroll
+            el = el.parentElement;
+        }
+        // No inner scrollable found — prevent tabsContainer from scrolling horizontally
+        e.preventDefault();
+    }, { passive: false });
+    window.addEventListener('resize', () => {
+        updateNavPadding();
+        const ai = document.querySelector('.nav-item.active');
+        if (ai) tabsContainer.scrollTo({ left: +ai.dataset.index*tabsContainer.clientWidth, behavior:'auto' });
+    });
+
+    /* FIX 1: Block vertical swipes from triggering horizontal tab switch.
+       The tabs-container only scrolls horizontally via JS/clicks.
+       Touch on inner scroll divs is handled by touch-action:pan-y on those divs. */
+    let touchStartX=0, touchStartY=0;
+    tabsContainer.addEventListener('touchstart', e=>{
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, {passive:true});
+    tabsContainer.addEventListener('touchmove', e=>{
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        // If vertical swipe is dominant, prevent horizontal tab switching
+        if (dy > dx && dy > 8) e.stopPropagation();
+    }, {passive:true});
+</script>
+
+<!-- ── FIREBASE SCRIPT ── -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+    const app = initializeApp({
+        apiKey: "AIzaSyDenzC3AGp3GwaQ6G_jBUFU6TGrqtLNbPU",
+        authDomain: "upma-26.firebaseapp.com",
+        databaseURL: "https://upma-26-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "upma-26",
+        storageBucket: "upma-26.firebasestorage.app",
+        messagingSenderId: "930531982067",
+        appId: "1:930531982067:web:4c7cd59bee475f192f1586"
+    });
+    const db = getDatabase(app);
+
+    const logos = {
+        ABH:'https://i.ibb.co/hFSd5QNH/IMG-4213.png',
+        VYV:'https://i.ibb.co/TDz9YxP3/IMG-4240.png',
+        ADH:'https://i.ibb.co/6RdWHBQL/IMG-4241.png',
+        PRJ:'https://i.ibb.co/FLvxMZgV/IMG-4242.png'
+    };
+    function getLogo(code,rec){
+        if(rec?.team1===code&&rec?.team1Logo)return rec.team1Logo;
+        if(rec?.team2===code&&rec?.team2Logo)return rec.team2Logo;
+        return logos[String(code).replace(/-[BG]$/i,'').toUpperCase()]||'';
+    }
+    function mtLabel(mt){ return !mt||mt==='league'?'League':mt==='semi_final'?'Semi-Final':'Grand Final'; }
+
+    function buildCard(t1,t2,logo1,logo2,sc1,sc2,period,mt,winnerMsg,playerStats,isLive){
+        const statusHTML = isLive
+            ? `<div style="display:flex;align-items:center;gap:6px;"><div style="width:7px;height:7px;background:#ff3b30;border-radius:50%;box-shadow:0 0 6px #ff3b30;position:relative;"><div style="position:absolute;inset:0;border-radius:50%;background:#ff3b30;animation:pulseRing 1.8s ease-out infinite;"></div></div><span style="color:#ff3b30;font-size:13px;font-weight:800;">Live</span></div>`
+            : `<span style="color:#00ffcc;font-size:13px;font-weight:700;background:rgba(0,255,204,0.1);border:1px solid rgba(0,255,204,0.2);border-radius:6px;padding:2px 7px;">FINISHED</span>`;
+        let t1p='',t2p='';
+        if(playerStats){ Object.values(playerStats).forEach(p=>{ const r=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;margin-bottom:3px;"><span style="font-size:11px;color:#b0b3b8;">${p.name}</span><span style="font-size:11px;font-weight:700;color:#fff;">${p.pts}</span></div>`; if(p.team===t1)t1p+=r; else t2p+=r; }); }
+        const trackerHTML = (t1p||t2p)?`<div style="display:flex;width:100%;margin-top:16px;border-radius:16px;padding:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.05);gap:16px;"><div style="width:50%;display:flex;flex-direction:column;gap:2px;border-right:1px solid rgba(255,255,255,0.08);padding-right:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${t1}</div>${t1p}</div><div style="width:50%;display:flex;flex-direction:column;gap:2px;padding-left:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${t2}</div>${t2p}</div></div>`:'';
+        return `<div style="width:100%;border-radius:24px;padding:22px 20px 18px;background:rgba(15,15,22,0.55);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.08);box-shadow:2px 2px 0 #000,4px 4px 0 #000,6px 6px 0 #000,0 20px 40px rgba(0,0,0,0.65);${isLive?'animation:cardFloat 4s ease-in-out infinite;':''}">
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px;flex-wrap:wrap;">
+                <span style="color:#fff;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Basketball</span>
+                <span style="border:1px solid rgba(255,255,255,0.18);border-radius:8px;padding:4px 10px;color:#b0b3b8;font-size:11px;font-weight:600;text-transform:uppercase;">${period}</span>
+                <span style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.45);">${mtLabel(mt)}</span>
+                ${statusHTML}
+            </div>
+            <div style="width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);margin:12px 0 18px;"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%;position:relative;margin-bottom:12px;">
+                <div style="display:flex;flex-direction:column;align-items:center;width:36%;gap:6px;">
+                    <img src="${logo1}" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
+                    <div style="color:#fff;font-weight:700;font-size:14px;text-align:center;">${t1}</div>
+                </div>
+                <div style="display:flex;flex-direction:column;width:20%;align-items:flex-start;">
+                    <span style="color:#fff;font-size:32px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35);">${sc1}</span>
+                </div>
+                <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#6c7075;font-weight:800;font-size:13px;">VS</div>
+                <div style="display:flex;flex-direction:column;width:20%;align-items:flex-end;">
+                    <span style="color:#fff;font-size:32px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35);">${sc2}</span>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;width:36%;gap:6px;">
+                    <img src="${logo2}" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
+                    <div style="color:#fff;font-weight:700;font-size:14px;text-align:center;">${t2}</div>
+                </div>
+            </div>
+            ${winnerMsg?`<div style="width:100%;text-align:center;padding:10px;border-radius:10px;background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);color:#00ffcc;font-size:13px;font-weight:600;margin-top:8px;">${winnerMsg}</div>`:''}
+            ${trackerHTML}
+        </div>`;
+    }
+
+    /* ── LIVE ── */
+    function renderLive(rec){
+        const noBox = document.getElementById('noLiveBox');
+        const wrap  = document.getElementById('basketballCardWrap');
+        if(!noBox||!wrap) return;
+        if(!rec||!rec.team1||!(rec.status==='LIVE'||rec.status==='FINAL')){
+            noBox.style.display='block'; wrap.style.display='none'; return;
+        }
+        noBox.style.display='none'; wrap.style.display='block';
+        const t1=rec.team1,t2=rec.team2,sc1=rec.team1Score??0,sc2=rec.team2Score??0;
+        const matchOver=(rec.period==='Full Time')||rec.status==='FINAL';
+        let wm='';
+        if(matchOver&&sc1!==sc2){const w=sc1>sc2?t1:t2,m=Math.abs(sc1-sc2);wm=`${w} won by ${m} point${m!==1?'s':''}`;}
+        else if(matchOver) wm='Match Tied!';
+        wrap.innerHTML=buildCard(t1,t2,getLogo(t1,rec),getLogo(t2,rec),sc1,sc2,rec.period||'',rec.matchType,wm,rec.playerStats,rec.status==='LIVE');
+    }
+
+    /* ── RESULTS ── */
+    function renderResults(data){
+        const content = document.getElementById('resultsInnerContent');
+        const noBox   = document.getElementById('noResultsBox');
+        if(!content||!noBox) return;
+        content.querySelectorAll('.res-card').forEach(c=>c.remove());
+        const matches = Object.values(data||{})
+            .filter(m=>m.fn===true||m.fn==='true'||m.status==='FINAL')
+            .sort((a,b)=>(b.lastUpdated||'').localeCompare(a.lastUpdated||''));
+        if(!matches.length){ noBox.style.display='flex'; return; }
+        noBox.style.display='none';
+        matches.forEach(rec=>{
+            const t1=rec.team1||'--',t2=rec.team2||'--',sc1=rec.team1Score??0,sc2=rec.team2Score??0;
+            let wm='';
+            if(+sc1!==+sc2){const w=+sc1>+sc2?t1:t2,m=Math.abs(+sc1-+sc2);wm=`${w} won by ${m} point${m!==1?'s':''}`;}
+            else wm='Match Tied!';
+            const div=document.createElement('div');
+            div.className='res-card'; div.style.cssText='width:90%;max-width:440px;';
+            div.innerHTML=buildCard(t1,t2,getLogo(t1,rec),getLogo(t2,rec),sc1,sc2,rec.period||'Full Time',rec.matchType,wm,rec.playerStats,false);
+            content.appendChild(div);
+        });
+    }
+
+    /* ── STANDINGS ── */
+    function renderStandings(archiveData){
+        const tbody = document.getElementById('standingsTableBody');
+        if(!tbody) return;
+
+        // Build win/loss record from finished matches
+        const record = {};
+        Object.values(archiveData||{}).forEach(m=>{
+            if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
+            const t1=m.team1, t2=m.team2;
+            if(!t1||!t2) return;
+            if(!record[t1]) record[t1]={w:0,l:0};
+            if(!record[t2]) record[t2]={w:0,l:0};
+            const sc1=+(m.team1Score||0), sc2=+(m.team2Score||0);
+            if(sc1>sc2){ record[t1].w++; record[t2].l++; }
+            else if(sc2>sc1){ record[t2].w++; record[t1].l++; }
+        });
+
+        const teams = Object.entries(record).map(([name,r])=>{
+            const gp=r.w+r.l, pct=gp>0?r.w/gp:0;
+            return {name, w:r.w, l:r.l, pct};
+        }).sort((a,b)=>b.pct-a.pct||b.w-a.w);
+
+        if(!teams.length){
+            tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">No matches recorded yet</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = teams.map((t,i)=>{
+            const pctStr = t.pct===1?'1.000':t.pct===0?'.000':t.pct.toFixed(3).replace('0.','.') ;
+            return `<tr>
+                <td class="col-rank">${i+1}</td>
+                <td>${t.name}</td>
+                <td class="text-center">${t.w}</td>
+                <td class="text-center">${t.l}</td>
+                <td class="text-right col-pct">${pctStr}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    /* ── LEADING SCORERS ── */
+    const VISIBLE_SCORERS = 5;
+    let scorersExpanded = false;
+
+    function renderScorers(data, archiveData){
+        const tbody  = document.getElementById('scorersTableBody');
+        const btn    = document.getElementById('showMoreBtn');
+        if(!tbody||!btn) return;
+
+        // Count games played per player from archive playerStats
+        const gamesPlayed = {};
+        Object.values(archiveData||{}).forEach(m=>{
+            if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
+            if(!m.playerStats) return;
+            Object.values(m.playerStats).forEach(p=>{
+                if(p.name) gamesPlayed[p.name] = (gamesPlayed[p.name]||0)+1;
+            });
+        });
+
+        const players = Object.values(data||{})
+            .sort((a,b)=>(b.totalPoints||0)-(a.totalPoints||0));
+
+        if(!players.length){
+            tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">No data yet</td></tr>`;
+            btn.style.display='none'; return;
+        }
+
+        tbody.innerHTML = players.map((p,i)=>{
+            const gp = gamesPlayed[p.name]||1;
+            const ppg = ((p.totalPoints||0)/gp).toFixed(1);
+            return `<tr class="${i>=VISIBLE_SCORERS&&!scorersExpanded?'hidden-row':''}">
+                <td class="col-rank">${i+1}</td>
+                <td>${p.name||'—'}</td>
+                <td class="text-center" style="color:rgba(255,255,255,0.5);font-size:0.8rem;">${p.team||'—'}</td>
+                <td class="text-right col-pts-val">${p.totalPoints||0}</td>
+                <td class="text-right" style="color:#FFCC00;font-weight:700;">${ppg}</td>
+            </tr>`;
+        }).join('');
+
+        if(players.length>VISIBLE_SCORERS){
+            btn.style.display='block';
+            btn.textContent = scorersExpanded ? 'Show Less ▴' : `Show more▾`;
+        } else {
+            btn.style.display='none';
+        }
+    }
+
+    window.toggleScorers = function(){
+        scorersExpanded = !scorersExpanded;
+        document.querySelectorAll('#scorersTableBody .hidden-row').forEach(r=>r.classList.remove('hidden-row'));
+        if(!scorersExpanded){
+            const rows = document.querySelectorAll('#scorersTableBody tr');
+            rows.forEach((r,i)=>{ if(i>=VISIBLE_SCORERS) r.classList.add('hidden-row'); });
+        }
+        const btn = document.getElementById('showMoreBtn');
+        const total = document.querySelectorAll('#scorersTableBody tr').length;
+        if(btn) btn.textContent = scorersExpanded ? 'Show Less ▴' : `Show All ${total} Scorers ▾`;
+    };
+
+    /* ── FIREBASE LISTENERS ── */
+    let _archiveCache = {};
+    onValue(ref(db,'matches/basketball/current'),         snap=>renderLive(snap.exists()?snap.val():null));
+    onValue(ref(db,'matches_archive/basketball'),         snap=>{
+        _archiveCache = snap.exists()?snap.val():{};
+        renderResults(_archiveCache);
+        renderStandings(_archiveCache);
+    });
+    onValue(ref(db,'player_totals/basketball'),           snap=>renderScorers(snap.exists()?snap.val():{}, _archiveCache));
+
+    window.addEventListener('liveRefreshRequested', ()=>{
+        get(ref(db,'matches/basketball/current')).then(s=>renderLive(s.exists()?s.val():null));
+    });
+</script>
+
+</body>
+</html>
