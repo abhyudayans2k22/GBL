@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -8,41 +8,37 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { width: 100%; height: 100%; min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; overflow: hidden; background-color: #000; }
 
-html { height: -webkit-fill-available; }
-body { min-height: -webkit-fill-available; }
+        html { height: -webkit-fill-available; }
+        body { min-height: -webkit-fill-available; }
 
         .tabs-container {
-    display: flex;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    width: 100%;
-    height: 100%;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    -webkit-scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    overflow-y: hidden;
-    touch-action: pan-x;
-    align-items: stretch;
-    background: #000;
-}
+            display: flex;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden; /* Natively prevents swipe/horizontal gestures */
+            overflow-y: hidden;
+            align-items: stretch;
+            background: #000;
+        }
 
         .tabs-container::-webkit-scrollbar { display: none; }
 
         .tab-content {
-    width: 100vw;
-    height: 100vh;
-    min-height: -webkit-fill-available;
-    flex-shrink: 0;
-    scroll-snap-align: start;
-    position: relative;
-    display: block;
-    color: white;
-    overflow: hidden;
-}
+            width: 100vw;
+            height: 100vh;
+            min-height: -webkit-fill-available;
+            flex-shrink: 0;
+            position: relative;
+            display: block;
+            color: white;
+            overflow: hidden;
+        }
         .tab-content h1 { font-size: 3rem; font-weight: 800; letter-spacing: 2px; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); }
 
         #home, #home-s1, #home-s3 { background: linear-gradient(135deg, #111827, #1f2937); }
+        #home { touch-action: pan-y; }
         #live, #live-s1, #live-s3 { background: #000000; }
         #results, #results-s1, #results-s3 { background: #0a0a14; }
         #standings, #standings-s1, #standings-s3 { background: linear-gradient(135deg, #0a0a1a, #0d0d2b); }
@@ -61,7 +57,6 @@ body { min-height: -webkit-fill-available; }
             overflow-y: auto; overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
-            /* FIX 1: Allow vertical scroll ONLY within this inner div */
             touch-action: pan-y;
         }
         .standings-scroll::-webkit-scrollbar { display: none; }
@@ -107,9 +102,8 @@ body { min-height: -webkit-fill-available; }
 
 <div class="tabs-container" id="tabsContainer">
 
-    <!-- BUFFER SET 1 — no IDs, static display only -->
-    <!-- BUFFER SET 1 — no IDs, static display only -->
-    <section id="home-s1" class="tab-content" style="background:#000;"></section>
+    <!-- BUFFER SET 1 — Display buffers -->
+    <section id="home-s1" class="tab-content" style="background-image:#000 ;"></section>
 
     <section id="live-s1" class="tab-content">
         <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
@@ -145,23 +139,29 @@ body { min-height: -webkit-fill-available; }
     </section>
 
     <!-- ═══════════════════════════════════════════
-         ACTIVE MIDDLE SET 2 — only set with real IDs
+         ACTIVE MIDDLE SET 2 — real IDs
     ═══════════════════════════════════════════ -->
     <section id="home" class="tab-content" style="overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
-        <!-- HERO: background image fills exactly one screen -->
         <div id="homehero" style="position:relative;width:100%;height:100vh;flex-shrink:0;overflow:hidden;will-change:transform;">
             <img id="heroBg" src="https://i.ibb.co/Nnt4wTdZ/download-7.jpg"
                  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;will-change:transform;transform-origin:center center;" alt="">
             <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
             <div id="heroLogo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);will-change:transform;display:flex;align-items:center;justify-content:center;">
                 <img src="https://i.ibb.co/JF8QyMRn/CDA6-D670-E2-B7-46-AF-B471-654-BEF01-A556.png"
-                     style="width:200px;height:200px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,204,0,0.6));border-radius:50%;" alt="Logo">
+                     style="width:230px;height:230px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,204,0,0.6));border-radius:50%;" alt="Logo">
             </div>
         </div>
-        <!-- BLACK CONTENT SECTION -->
         <div style="width:100%;background:#000;padding:60px 24px 140px;display:flex;flex-direction:column;align-items:center;gap:24px;">
-            <h2 style="font-size:2.2rem;font-weight:900;text-transform:uppercase;text-align:center;color:#FFCC00;letter-spacing:-1px;text-shadow:2px 2px 0 #000,4px 4px 0 rgba(0,0,0,0.5);line-height:1.1;">GEMS Ballers League</h2>
-            <p style="font-size:0.95rem;color:rgba(255,255,255,0.7);line-height:1.8;max-width:500px;text-align:center;font-weight:400;">Basketball is more than a game — it is a language spoken in sweat, sacrifice, and soaring ambition. Every dribble carries a story, every shot a dream. The GEMS Ballers League was born from that very fire: to give athletes a stage worthy of their grind, a court where rivalries ignite and legends are forged. This is not just a tournament. This is a movement — a celebration of skill, teamwork, and the relentless pursuit of greatness that defines every true baller.</p>
+            <h2 style="font-family: 'Cinzel', serif;font-size:2.2rem;font-weight:600;text-transform:uppercase;text-align:center;color:#FFCC00;letter-spacing:-1px;text-shadow:2px 2px 0 #000,4px 4px 0 rgba(0,0,0,0.5);line-height:1.1;">GEMS Ballers League</h2>
+            <p style="color: rgba(230, 230, 230, 0.95);
+            font-family: system-ui, -apple-system, sans-serif;
+            font-size: 0.98rem;
+            line-height: 1.3;
+            font-weight: 400;
+            letter-spacing: 0.4px;
+            margin-bottom: 10px;
+            margin-top: 0px;
+            text-align: justify;">The GEMS Ballers League was born to give athletes a stage worthy of their grind, a court where rivalries ignite and legends are forged. This is not just a tournament. This is a movement, a celebration of skill, teamwork, and the relentless pursuit of greatness that defines every true baller.</p>
         </div>
         <script>
             (function(){
@@ -171,9 +171,7 @@ body { min-height: -webkit-fill-available; }
                 if(!section||!heroBg||!heroLogo) return;
                 function onScroll(){
                     const scrollY = section.scrollTop;
-                    // Parallax: bg moves up at 40% scroll speed (slower than content)
                     heroBg.style.transform = `translateY(${scrollY * 0.4}px)`;
-                    // Logo moves up slightly faster than bg for depth
                     heroLogo.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.25}px))`;
                 }
                 section.addEventListener('scroll', onScroll, {passive:true});
@@ -207,22 +205,19 @@ body { min-height: -webkit-fill-available; }
         <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
             <div id="resultsInnerContent" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:80px 20px 160px 20px;">
                 <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Results</div>
-                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">Basketball · All Matches</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;"></div>
                 <div id="noResultsBox" style="width:90%;max-width:440px;border-radius:20px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
                     <div style="font-size:36px;opacity:0.4;">🏀</div>
-                    <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No finished matches yet</div>
+                    <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No matches yet</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- STANDINGS — middle set with real IDs -->
     <section id="standings" class="tab-content">
         <div class="standings-scroll">
             <div class="standings-inner">
                 <div class="standings-page-title">Standings</div>
-
-                <!-- TEAM STANDINGS TABLE -->
                 <div class="glass-card">
                     <h2 class="card-title">Team Standings</h2>
                     <table>
@@ -240,8 +235,6 @@ body { min-height: -webkit-fill-available; }
                         </tbody>
                     </table>
                 </div>
-
-                <!-- LEADING SCORERS TABLE -->
                 <div class="glass-card">
                     <h2 class="card-title">Leading Scorers</h2>
                     <table>
@@ -260,13 +253,11 @@ body { min-height: -webkit-fill-available; }
                     </table>
                     <button class="show-more-btn" id="showMoreBtn" style="display:none;" onclick="toggleScorers()">Show more</button>
                 </div>
-
             </div>
         </div>
     </section>
 
-    <!-- BUFFER SET 3 — no IDs, static display only -->
-    <!-- BUFFER SET 3 — no IDs, static display only -->
+    <!-- BUFFER SET 3 — Display buffers -->
     <section id="home-s3" class="tab-content" style="background:#000;"></section>
 
     <section id="live-s3" class="tab-content">
@@ -353,6 +344,8 @@ body { min-height: -webkit-fill-available; }
         const r = (i%4)+4; if (i!==r) jumpTo(r);
     }
 
+    tabsContainer.style.overscrollBehaviorX = 'none';
+
     tabsContainer.addEventListener('scroll', () => {
         const w = tabsContainer.clientWidth; if (!w) return;
         const x = tabsContainer.scrollLeft/w, base=Math.floor(x), frac=x-base;
@@ -371,8 +364,6 @@ body { min-height: -webkit-fill-available; }
     window.addEventListener('load',   () => { updateNavPadding(); jumpTo(4); });
     // Block wheel from scrolling tabs horizontally; let inner divs scroll vertically
     tabsContainer.addEventListener('wheel', e => {
-        // If the event target (or any ancestor up to tabsContainer) is a scrollable inner div,
-        // let it scroll normally. Only block if the wheel would move tabsContainer horizontally.
         let el = e.target;
         while (el && el !== tabsContainer) {
             const style = window.getComputedStyle(el);
@@ -381,7 +372,6 @@ body { min-height: -webkit-fill-available; }
             if (canScroll) return; // let the inner element scroll
             el = el.parentElement;
         }
-        // No inner scrollable found — prevent tabsContainer from scrolling horizontally
         e.preventDefault();
     }, { passive: false });
     window.addEventListener('resize', () => {
@@ -389,21 +379,6 @@ body { min-height: -webkit-fill-available; }
         const ai = document.querySelector('.nav-item.active');
         if (ai) tabsContainer.scrollTo({ left: +ai.dataset.index*tabsContainer.clientWidth, behavior:'auto' });
     });
-
-    /* FIX 1: Block vertical swipes from triggering horizontal tab switch.
-       The tabs-container only scrolls horizontally via JS/clicks.
-       Touch on inner scroll divs is handled by touch-action:pan-y on those divs. */
-    let touchStartX=0, touchStartY=0;
-    tabsContainer.addEventListener('touchstart', e=>{
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    }, {passive:true});
-    tabsContainer.addEventListener('touchmove', e=>{
-        const dx = Math.abs(e.touches[0].clientX - touchStartX);
-        const dy = Math.abs(e.touches[0].clientY - touchStartY);
-        // If vertical swipe is dominant, prevent horizontal tab switching
-        if (dy > dx && dy > 8) e.stopPropagation();
-    }, {passive:true});
 </script>
 
 <!-- ── FIREBASE SCRIPT ── -->
@@ -517,7 +492,6 @@ body { min-height: -webkit-fill-available; }
         const tbody = document.getElementById('standingsTableBody');
         if(!tbody) return;
 
-        // Build win/loss record from finished matches
         const record = {};
         Object.values(archiveData||{}).forEach(m=>{
             if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
@@ -561,7 +535,6 @@ body { min-height: -webkit-fill-available; }
         const btn    = document.getElementById('showMoreBtn');
         if(!tbody||!btn) return;
 
-        // Count games played per player from archive playerStats
         const gamesPlayed = {};
         Object.values(archiveData||{}).forEach(m=>{
             if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
@@ -611,7 +584,6 @@ body { min-height: -webkit-fill-available; }
         if(btn) btn.textContent = scorersExpanded ? 'Show Less ▴' : `Show All ${total} Scorers ▾`;
     };
 
-    /* ── FIREBASE LISTENERS ── */
     let _archiveCache = {};
     onValue(ref(db,'matches/basketball/current'),         snap=>renderLive(snap.exists()?snap.val():null));
     onValue(ref(db,'matches_archive/basketball'),         snap=>{
