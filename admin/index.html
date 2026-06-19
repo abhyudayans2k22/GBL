@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basketball Panel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            background: #000000;
+            font-family: system-ui, sans-serif;
+            color: #fff;
+            touch-action: manipulation;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 40px 14px;
+        }
+
+        .page-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            animation: fIn 0.2s ease-in-out;
+        }
+
+        .page-view.active {
+            display: flex;
+        }
+
+        @keyframes fIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── HOME ── */
+        .menu-box {
+            width: 100%;
+            background: #161920;
+            border: 1px solid #242936;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            margin-bottom: 16px;
+        }
+
+        .menu-box h1 {
+            font-size: 1.4rem;
+            margin-bottom: 6px;
+            color: #ff9900;
+            letter-spacing: 1px;
+        }
+
+        .menu-box .sub {
+            font-size: 0.75rem;
+            color: #718096;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #0d0e12;
+            background: #ff9900;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        .hist-container {
+            width: 100%;
+            background: #111319;
+            border: 1px solid #1f232e;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .hist-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #718096;
+            text-transform: uppercase;
+            border-bottom: 1px solid #1c202e;
+            padding-bottom: 6px;
+        }
+
+        .hist-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .hist-item {
+            background: #161920;
+            border: 1px solid #242936;
+            border-radius: 10px;
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hist-match-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .hist-teams {
+            font-size: 0.85rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hist-scores {
+            font-size: 0.75rem;
+            color: #a0aec0;
+        }
+
+        .hist-del-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ── BASKETBALL PAGE ── */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .page-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #ff9900;
+        }
+
+        .live-toggle-btn {
+            background: #161920;
+            border: 1px solid #242936;
+            color: #a0aec0;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: none;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .live-toggle-btn::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #a0aec0;
+            border-radius: 50%;
+        }
+
+        .live-toggle-btn.is-live {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .live-toggle-btn.is-live::before {
+            background: #ef4444;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+
+        .match-type-sel {
+            width: 100%;
+            background: #161920;
+            border: 1px solid #2d3345;
+            color: #a0aec0;
+            padding: 9px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0aec0' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-color: #161920;
+            margin-bottom: 12px;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .select-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .sel-wp select {
+            width: 100%;
+            background: #161920;
+            border: 1px solid #242936;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0aec0' viewBox='0 0 24 24'><path d='M7 10l5 5 5-5z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-color: #161920;
+        }
+
+        .sel-wp {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .select-grid .sel-wp {
+            margin-bottom: 0;
+        }
+
+        /* ── SCOREBOX ── */
+        .scorebox-card {
+            display: none;
+            width: 100%;
+            background: #090a0d;
+            border: 1.5px solid #ff9900;
+            border-radius: 12px;
+            padding: 10px 12px;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 14px;
+        }
+
+        .sb-hd {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            width: 100% !important;
+            border-bottom: 1px solid #1c202e;
+            padding-bottom: 6px;
+            margin-bottom: 4px;
+        }
+
+        .sb-ttl {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #ff9900;
+        }
+
+        .sb-period-tag {
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: #161920;
+            color: #a0aec0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            margin-left: auto !important;
+        }
+
+        .badge.st-lv {
+            color: #ef4444;
+        }
+
+        .badge.st-lv::before {
+            content: '•';
+            font-size: 1rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        .badge.st-fn {
+            color: #00ffcc;
+            background: rgba(0, 255, 204, 0.1);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            text-transform: uppercase;
+        }
+
+        .bb-main-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px 4px 12px;
+            width: 100%;
+        }
+
+        .bb-side-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 30%;
+        }
+
+        .bb-side-block img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .bb-side-block span {
+            font-size: 0.85rem;
+            font-weight: 800;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+
+        .bb-center-score {
+            font-size: 1.8rem;
+            font-weight: 900;
+            width: 40%;
+            text-align: center;
+        }
+
+        .bb-perf-board {
+            border-top: 1px solid #1c202e;
+            margin-top: 6px;
+            padding-top: 6px;
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            gap: 16px !important;
+            box-sizing: border-box !important;
+            padding: 6px 4px 0 4px !important;
+        }
+
+        .bb-team-col {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            text-align: left !important;
+        }
+
+        .bb-team-col.right-side {
+            text-align: right !important;
+        }
+
+        .bb-team-col-hdr {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #ff9900;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .bb-team-col-hdr.tr {
+            text-align: right;
+        }
+
+        .bb-p-stat-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #a0aec0;
+        }
+
+        .bb-p-stat-row .p-nm {
+            color: #4299e1;
+        }
+
+        .bb-p-stat-row .p-pts {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .bb-team-col.right-side .bb-p-stat-row {
+            flex-direction: row-reverse;
+        }
+
+        /* ── CONTROLS ── */
+        .bb-control-layout {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .bb-selectors-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .bb-btn-matrix {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .bb-side-stack {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .bb-mod-btn {
+            background: #13151a;
+            border: 1px solid #1f232e;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.8rem;
+            padding: 10px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .m-ov .bb-mod-btn {
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .act-btn {
+            background: #13151a;
+            border: 1px solid #1f232e;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 12px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .act-btn.mn {
+            background: #0f1c18;
+            border-color: #1a332a;
+            color: #00ffcc;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+
+        .back-btn {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #a0aec0;
+            background: transparent;
+            border: 1px solid #4a5568;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 16px;
+            align-self: center;
+        }
+
+        /* ── MODAL ── */
+        .md-ov {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 6, 8, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+
+        .md-bx {
+            background: #0d0e12;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.7);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .md-ttl {
+            color: #ff9900;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+
+        .md-lbl {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #4a5568;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .md-ipt {
+            width: 100%;
+            background: #13151a;
+            border: 1px solid #1f232e;
+            color: #fff;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .md-acts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .md-btn {
+            padding: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .md-btn.cc {
+            background: #181a21;
+            color: #a0aec0;
+            border: 1px solid #242936;
+        }
+
+        .md-btn.ap {
+            background: #ff9900;
+            color: #0d0e12;
+        }
+
+        .md-roster-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            max-height: 240px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+            padding-right: 4px;
+        }
+
+        .md-team-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .md-p-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #13151a;
+            border: 1px solid #1f232e;
+            padding: 5px 8px;
+            border-radius: 6px;
+        }
+
+        .md-p-item span {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #a0aec0;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+            flex-grow: 1;
+        }
+
+        .md-p-ipt {
+            width: 45px;
+            background: #090a0d;
+            border: 1px solid #2d3345;
+            color: #fff;
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+        }
+
+        /* ── IMAGE PANEL ── */
+        .panel-media-box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
+            margin: 20px 0 12px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* ── PLAYER TOTALS ── */
+        .totals-container {
+            width: 100%;
+            background: #111319;
+            border: 1px solid #1f232e;
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #161920;
+            border: 1px solid #242936;
+            border-radius: 10px;
+            padding: 8px 12px;
+        }
+
+        .totals-row .pn {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #4299e1;
+        }
+
+        .totals-row .pp {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- ══ HOME ══ -->
+        <div id="home-p" class="page-view active">
+            <div class="menu-box">
+                <h1>🏀 GEMS BALLERS LEAGUE</h1>
+                <p class="sub">scorer web</p>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <button class="start-btn" onclick="nav('basket-p')" style="flex: 1;">Start Match</button>
+                    <button class="start-btn" onclick="openCustomTeamModal()" style="flex: 1; background: linear-gradient(135deg, #ff9900, #ff5500); color: #0d0e12;">Custom Team</button>
+                </div>
+            </div>
+
+            <!-- CUSTOM TEAMS LIST -->
+            <div class="hist-container" style="margin-bottom: 16px;">
+                <div class="hist-title">— CUSTOM TEAMS —</div>
+                <div id="customTeamsList" class="hist-list">
+                    <div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">Loading…</div>
+                </div>
+            </div>
+
+            <div class="hist-container">
+                <div class="hist-title">— HISTORY —</div>
+                <div id="adminHistList" class="hist-list">
+                    <div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">Loading…</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ BASKETBALL PAGE ══ -->
+        <div id="basket-p" class="page-view">
+            <div class="top-bar">
+                <span class="page-title">🏀 BASKETBALL</span>
+                <button class="live-toggle-btn" id="bbLvBtn" onclick="tglLv()">LIVE</button>
+            </div>
+
+            <select class="match-type-sel" id="bbMatchType" onchange="onMatchTypeChange()">
+                <option value="league">League Match</option>
+                <option value="semi_final">Semi-Final</option>
+                <option value="grand_final">Grand Final</option>
+            </select>
+
+            <div class="select-grid">
+                <div class="sel-wp">
+                    <select id="bbT1Sel" onchange="chkTmsBB()">
+                        <option value="" disabled selected>Team 1</option>
+                    </select>
+                </div>
+                <div class="sel-wp">
+                    <select id="bbT2Sel" onchange="chkTmsBB()">
+                        <option value="" disabled selected>Team 2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="sel-wp">
+                <select id="bbPdSel" onchange="chkPdBB()">
+                    <option value="1st Quarter">1st Quarter</option>
+                    <option value="2nd Quarter">2nd Quarter</option>
+                    <option value="Half Time">Half Time</option>
+                    <option value="3rd Quarter">3rd Quarter</option>
+                    <option value="4th Quarter">4th Quarter</option>
+                    <option value="Full Time">Full Time</option>
+                </select>
+            </div>
+
+            <!-- SCOREBOX -->
+            <div class="scorebox-card" id="bbSbCard">
+                <div class="sb-hd">
+                    <span class="sb-ttl">BASKETBALL</span>
+                    <span class="sb-period-tag" id="bbCardPd">1st Quarter</span>
+                    <span class="badge" id="bbCardSt"></span>
+                </div>
+                <div class="bb-main-display">
+                    <div class="bb-side-block">
+                        <img src="" id="bbT1Lg" alt="">
+                        <span id="bbT1Lbl">TEAM 1</span>
+                    </div>
+                    <div class="bb-center-score"><span id="bbT1S">0</span> - <span id="bbT2S">0</span></div>
+                    <div class="bb-side-block">
+                        <img src="" id="bbT2Lg" alt="">
+                        <span id="bbT2Lbl">TEAM 2</span>
+                    </div>
+                </div>
+                <div class="bb-perf-board">
+                    <div class="bb-team-col" id="bbT1StatCol"></div>
+                    <div class="bb-team-col right-side" id="bbT2StatCol"></div>
+                </div>
+            </div>
+
+            <!-- CONTROLS -->
+            <div class="bb-control-layout" id="bbCtrlCont">
+                <div class="bb-selectors-row">
+                    <div class="sel-wp"><select id="bbP1Sel"></select></div>
+                    <div class="sel-wp"><select id="bbP2Sel"></select></div>
+                </div>
+                <div class="bb-btn-matrix">
+                    <div class="bb-side-stack">
+                        <button class="bb-mod-btn" onclick="scBB(1,1)">+1</button>
+                        <button class="bb-mod-btn" onclick="scBB(1,2)">+2</button>
+                        <button class="bb-mod-btn" onclick="scBB(1,3)">+3</button>
+                    </div>
+                    <div class="bb-side-stack">
+                        <button class="bb-mod-btn" onclick="scBB(2,1)">+1</button>
+                        <button class="bb-mod-btn" onclick="scBB(2,2)">+2</button>
+                        <button class="bb-mod-btn" onclick="scBB(2,3)">+3</button>
+                    </div>
+                </div>
+                <button class="act-btn mn" style="width:100%;margin-top:4px;" onclick="opMdBB()">Man</button>
+            </div>
+
+            <!-- IMAGE UPLOAD -->
+            <div class="panel-media-box">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+                        <span style="color:#ffffff;font-size:13px;font-weight:600;letter-spacing:0.3px;">Live Match Gallery</span>
+                        <span id="imgSlotLabel" style="color:rgba(255,255,255,0.45);font-size:11px;">0/3 slots used</span>
+                    </div>
+                    <label style="background:#ffffff;color:#000000;font-size:12px;font-weight:700;padding:8px 16px;border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+                        Upload Files
+                        <input type="file" accept="image/*" multiple style="display:none;" onchange="handleMatchImageUpload(event)">
+                    </label>
+                </div>
+                <div id="imgThumbnailRow" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+            </div>
+
+            <button class="back-btn" onclick="resetToHome()">← Back to Home</button>
+        </div>
+    </div>
+
+    <!-- BASKETBALL ADJUST MODAL -->
+    <div class="md-ov" id="bbAdjMd">
+        <div class="md-bx">
+            <div class="md-ttl">Basketball Adjustments</div>
+            <div class="md-roster-split" id="mdBbRosterCont"></div>
+            <div class="md-acts">
+                <button class="md-btn cc" onclick="clMdBB()">Cancel</button>
+                <button class="md-btn ap" onclick="svMdBB()">Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM TEAM MODAL -->
+    <div class="md-ov" id="customTeamModal">
+        <div class="md-bx" style="max-width: 380px;">
+            <div class="md-ttl" id="customTeamModalTitle">Create Custom Team</div>
+            <input type="hidden" id="customTeamId">
+            
+            <label class="md-lbl">Team Name</label>
+            <input type="text" id="customTeamName" class="md-ipt" placeholder="Enter Team Name" style="text-align: left; font-size: 0.95rem;">
+            
+            <label class="md-lbl">Players (Up to 6)</label>
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 1" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 2" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 3" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 4" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 5" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+                <input type="text" class="md-ipt custom-player-input" placeholder="Player 6" style="text-align: left; font-size: 0.85rem; margin-bottom: 0;">
+            </div>
+            
+            <div class="md-acts">
+                <button class="md-btn cc" onclick="closeCustomTeamModal()">Cancel</button>
+                <button class="md-btn ap" id="btnSaveCustomTeam" style="background: linear-gradient(135deg, #ff9900, #ff5500); color: #0d0e12; font-weight: 800;" onclick="saveCustomTeam()">Create Team</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+        import { getDatabase, ref, set, get, runTransaction, onValue } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDenzC3AGp3GwaQ6G_jBUFU6TGrqtLNbPU",
+            authDomain: "upma-26.firebaseapp.com",
+            databaseURL: "https://upma-26-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "upma-26",
+            storageBucket: "upma-26.firebasestorage.app",
+            messagingSenderId: "930531982067",
+            appId: "1:930531982067:web:4c7cd59bee475f192f1586"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Capitalization helper
+        function capitalizeName(str) {
+            if (!str) return '';
+            return str.trim().split(/\s+/)
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                      .join(' ');
+        }
+
+        // ─── TEAM CONFIG ────────────────────────────────────────────────────────
+        // To update teams: change label, logo URL, or players array below.
+        // Each team key (TEAM1, TEAM2, etc.) must stay unique.
+        // ═══════════════════════════════════════════════════════════════════════
+        const TEAM_CONFIG = {
+            'TEAM1': {
+                label: 'Team 1',
+                logo: 'https://i.ibb.co/hFSd5QNH/IMG-4213.png',   // ← swap logo URL here
+                players: ['LeBron James', 'Anthony Davis', 'Austin Reaves', 'D\'Angelo Russell', 'Jarred Vanderbilt']
+            },
+            'TEAM2': {
+                label: 'Team 2',
+                logo: 'https://i.ibb.co/TDz9YxP3/IMG-4240.png',   // ← swap logo URL here
+                players: ['Stephen Curry', 'Klay Thompson', 'Draymond Green', 'Andrew Wiggins', 'Jonathan Kuminga']
+            },
+            'TEAM3': {
+                label: 'Team 3',
+                logo: 'https://i.ibb.co/6RdWHBQL/IMG-4241.png',   // ← swap logo URL here
+                players: ['Giannis Antetokounmpo', 'Damian Lillard', 'Khris Middleton', 'Brook Lopez', 'Bobby Portis']
+            },
+            'TEAM4': {
+                label: 'Team 4',
+                logo: 'https://i.ibb.co/FLvxMZgV/IMG-4242.png',   // ← swap logo URL here
+                players: ['Jayson Tatum', 'Jaylen Brown', 'Kristaps Porzingis', 'Jrue Holiday', 'Al Horford']
+            }
+        };
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // Derived from TEAM_CONFIG — do not edit these manually
+        const ALL_TEAMS_COMBINED = Object.keys(TEAM_CONFIG);
+        
+        // Dynamic custom teams state
+        let CUSTOM_TEAMS = {};
+
+        const customLogoA = 'https://i.ibb.co/twz81SPb/download-8-removebg-preview.png';
+        const customLogoB = 'https://i.ibb.co/sdZC9SCS/Basketball-logos-Basketbol-g-rsel-removebg-preview.png';
+
+        // Helper to resolve logos (allocating unique logos if both playing teams are custom)
+        function getTeamLogo(key, otherKey) {
+            if (TEAM_CONFIG[key]) return TEAM_CONFIG[key].logo;
+            if (CUSTOM_TEAMS[key]) {
+                const otherIsCustom = !TEAM_CONFIG[otherKey];
+                if (otherIsCustom) {
+                    return (key < otherKey) ? customLogoA : customLogoB;
+                }
+                return CUSTOM_TEAMS[key].logo || customLogoA;
+            }
+            return customLogoA;
+        }
+
+        // Safe helper to get players roster that normalizes arrays and objects
+        function getRoster(key) {
+            let players = [];
+            if (TEAM_CONFIG[key]) {
+                players = TEAM_CONFIG[key].players;
+            } else if (CUSTOM_TEAMS[key]) {
+                players = CUSTOM_TEAMS[key].players;
+            }
+
+            if (!players) return [];
+            if (Array.isArray(players)) return players;
+            // Handle cases where Firebase converts array objects to standard objects
+            if (typeof players === 'object') return Object.values(players);
+            return [];
+        }
+
+        // Helper to get labels
+        function teamLabel(key) {
+            if (TEAM_CONFIG[key]) return TEAM_CONFIG[key].label;
+            if (CUSTOM_TEAMS[key]) return CUSTOM_TEAMS[key].label;
+            return key || '';
+        }
+        function teamDisplayLabel(key) { return teamLabel(key); }
+
+        // ─── STATE ────────────────────────────────────────────────────────────────
+        let st = initState();
+
+        function initState() {
+            return {
+                t1: { k: '', s: 0, p: {} },
+                t2: { k: '', s: 0, p: {} },
+                pd: '1st Quarter',
+                lv: false,
+                fn: false,
+                uploadedImages: [],
+                matchType: 'league',
+                currentMatchId: null,
+                _isFresh: false,
+                createdAt: null,
+                _prevP1: {}
+            };
+        }
+
+        const el = id => document.getElementById(id);
+
+        // ─── HELPERS ──────────────────────────────────────────────────────────────
+        function populateTeamDropdown(selId) {
+            const sel = el(selId);
+            if (!sel) return;
+            const was = sel.value;
+            sel.innerHTML = `<option value="" disabled selected>Team</option>`;
+            
+            // Add Static Teams
+            ALL_TEAMS_COMBINED.forEach(t => {
+                const opt = new Option(teamLabel(t), t);
+                sel.appendChild(opt);
+            });
+
+            // Add Custom Teams with defensive safety checks
+            Object.keys(CUSTOM_TEAMS).forEach(k => {
+                if (CUSTOM_TEAMS[k] && CUSTOM_TEAMS[k].label) {
+                    const opt = new Option(CUSTOM_TEAMS[k].label, k);
+                    sel.appendChild(opt);
+                }
+            });
+
+            if (ALL_TEAMS_COMBINED.includes(was) || CUSTOM_TEAMS[was]) sel.value = was;
+        }
+
+        function getNextMatchNumber() {
+            const key = 'matchCount_bball_upma26';
+            const cur = parseInt(localStorage.getItem(key) || '0', 10);
+            const nxt = cur + 1;
+            localStorage.setItem(key, String(nxt));
+            return nxt;
+        }
+
+        function buildMatchId(t1, t2) {
+            const num = getNextMatchNumber();
+            st._isFresh = true;
+            return `basketball_${num}_${t1}vs${t2}`;
+        }
+
+        // ─── FIREBASE ─────────────────────────────────────────────────────────────
+        async function saveToFirebase(isLive) {
+            if (!st.currentMatchId) return;
+            try {
+                if (!st.createdAt) {
+                    try {
+                        const snap = await get(ref(db, `matches_archive/basketball/${st.currentMatchId}/createdAt`));
+                        st.createdAt = (snap.exists() && snap.val()) ? snap.val() : new Date().toISOString();
+                    } catch { st.createdAt = new Date().toISOString(); }
+                }
+
+                const record = {
+                    matchId: st.currentMatchId,
+                    sport: 'basketball',
+                    matchType: st.matchType || 'league',
+                    createdAt: st.createdAt,
+                    lastUpdated: new Date().toISOString(),
+                    status: st.lv ? 'LIVE' : '',
+                    fn: st.fn || false,
+                    team1: st.t1.k,
+                    team2: st.t2.k,
+                    team1Logo: getTeamLogo(st.t1.k, st.t2.k),
+                    team2Logo: getTeamLogo(st.t2.k, st.t1.k),
+                    team1Score: st.t1.s || 0,
+                    team2Score: st.t2.s || 0,
+                    period: st.pd || '',
+                    playerStats: {},
+                    uploadedImages: st.uploadedImages || []
+                };
+
+                Object.entries(st.t1.p || {}).forEach(([p, pts]) => {
+                    record.playerStats[`t1_${p.replace(/[.#$/[\]]/g, '_')}`] = { name: p, pts, team: st.t1.k };
+                });
+                Object.entries(st.t2.p || {}).forEach(([p, pts]) => {
+                    record.playerStats[`t2_${p.replace(/[.#$/[\]]/g, '_')}`] = { name: p, pts, team: st.t2.k };
+                });
+
+                await set(ref(db, `matches_archive/basketball/${st.currentMatchId}`), record);
+
+                if (isLive) {
+                    await set(ref(db, `matches/basketball/current`), record);
+                } else {
+                    await set(ref(db, `matches/basketball/current/status`), record.status);
+                }
+
+                await syncPlayerTotals();
+            } catch (err) {
+                console.error("Firebase Save Error:", err);
+            }
+        }
+
+        // ─── PLAYER TOTALS ─────────────────────────────────────────────────────────
+        async function syncPlayerTotals() {
+            const allPlayers = [
+                ...Object.entries(st.t1.p || {}).map(([name, pts]) => ({ name, pts, team: st.t1.k })),
+                ...Object.entries(st.t2.p || {}).map(([name, pts]) => ({ name, pts, team: st.t2.k }))
+            ];
+
+            for (const player of allPlayers) {
+                const safeKey = `${player.team}_${player.name}`.replace(/[.#$/[\]]/g, '_');
+                const prevContribution = (st._prevP1 && st._prevP1[safeKey]) || 0;
+                const delta = (player.pts || 0) - prevContribution;
+                if (delta === 0) continue;
+
+                const totalRef = ref(db, `player_totals/basketball/${safeKey}`);
+                try {
+                    await runTransaction(totalRef, (current) => {
+                        const cur = current || { name: player.name, team: player.team, totalPoints: 0 };
+                        cur.totalPoints = (cur.totalPoints || 0) + delta;
+                        cur.name = player.name;
+                        cur.team = player.team;
+                        return cur;
+                    });
+                    st._prevP1 = st._prevP1 || {};
+                    st._prevP1[safeKey] = player.pts || 0;
+                } catch (e) {
+                    console.error('Player totals sync failed for', safeKey, e);
+                }
+            }
+        }
+
+        window.renderPlayerTotals = function () {
+            const box = el('playerTotalsList');
+            if (!box) return;
+            box.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">Loading…</div>`;
+            get(ref(db, 'player_totals/basketball')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    box.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">No data yet.</div>`;
+                    return;
+                }
+                const players = Object.values(snapshot.val())
+                    .sort((a, b) => (b.totalPoints || 0) - (a.totalPoints || 0))
+                    .slice(0, 10);
+                box.innerHTML = '';
+                players.forEach(p => {
+                    const row = document.createElement('div');
+                    row.className = 'totals-row';
+                    row.innerHTML = `<span class="pn">${p.name} <span style="color:#718096;font-weight:600;">(${teamLabel(p.team)})</span></span><span class="pp">${p.totalPoints || 0} pts</span>`;
+                    box.appendChild(row);
+                });
+            }).catch(() => {
+                box.innerHTML = `<div style="color:#ef4444;font-size:0.8rem;text-align:center;padding:8px;">Error loading totals.</div>`;
+            });
+        };
+
+        // ─── NAV ──────────────────────────────────────────────────────────────────
+        window.nav = function (p) {
+            document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+            el(p).classList.add('active');
+            window.scrollTo(0, 0);
+            if (p === 'home-p') { renderHistory(); renderPlayerTotals(); renderCustomTeamsList(); }
+        };
+
+        // ─── MATCH TYPE ───────────────────────────────────────────────────────────
+        window.onMatchTypeChange = function () {
+            st.matchType = el('bbMatchType').value;
+            if (st.currentMatchId && !st._isFresh) saveToFirebase(st.lv);
+        };
+
+        // ─── TEAM SELECT ──────────────────────────────────────────────────────────
+        window.chkTmsBB = function () {
+            const v1 = el('bbT1Sel').value, v2 = el('bbT2Sel').value;
+            if (v1 && v2) {
+                if (!st.currentMatchId) st.currentMatchId = buildMatchId(v1, v2);
+                st.t1.k = v1; st.t2.k = v2;
+                const d1 = el('bbP1Sel'), d2 = el('bbP2Sel');
+                d1.innerHTML = ''; d2.innerHTML = '';
+                
+                st.t1.p = {};
+                st.t2.p = {};
+
+                const r1 = getRoster(v1);
+                const r2 = getRoster(v2);
+
+                if (r1) r1.forEach(p => { st.t1.p[p] = 0; d1.options[d1.options.length] = new Option(p, p); });
+                if (r2) r2.forEach(p => { st.t2.p[p] = 0; d2.options[d2.options.length] = new Option(p, p); });
+
+                el('bbT1Lbl').textContent = teamLabel(v1);
+                el('bbT2Lbl').textContent = teamLabel(v2);
+                el('bbT1Lg').src = getTeamLogo(v1, v2);
+                el('bbT2Lg').src = getTeamLogo(v2, v1);
+                el('bbSbCard').style.display = 'flex';
+                el('bbCtrlCont').style.display = 'flex';
+                el('bbLvBtn').style.display = 'flex';
+                updUI();
+            } else {
+                el('bbSbCard').style.display = 'none';
+                el('bbCtrlCont').style.display = 'none';
+                el('bbLvBtn').style.display = 'none';
+            }
+        };
+
+        // ─── PERIOD ───────────────────────────────────────────────────────────────
+        window.chkPdBB = function () {
+            st.pd = el('bbPdSel').value;
+            st.fn = (st.pd === 'Full Time');
+            updUI();
+            if (st.currentMatchId && !st._isFresh) saveToFirebase(st.lv);
+        };
+
+        // ─── SCORE ────────────────────────────────────────────────────────────────
+        window.scBB = function (side, pts) {
+            const p = el(side === 1 ? 'bbP1Sel' : 'bbP2Sel').value;
+            const t = side === 1 ? st.t1 : st.t2;
+            t.p[p] = (t.p[p] || 0) + pts;
+            st.t1.s = Object.values(st.t1.p).reduce((a, b) => a + b, 0);
+            st.t2.s = Object.values(st.t2.p).reduce((a, b) => a + b, 0);
+            updUI();
+            if (st.currentMatchId && !st._isFresh) saveToFirebase(st.lv);
+        };
+
+        // ─── LIVE TOGGLE ──────────────────────────────────────────────────────────
+        window.tglLv = function () {
+            st.lv = !st.lv;
+            document.querySelectorAll('#basket-p select').forEach(sel => {
+                if (sel.id === 'bbPdSel' || sel.id === 'bbP1Sel' || sel.id === 'bbP2Sel') {
+                    sel.disabled = false; sel.style.opacity = '1';
+                } else {
+                    sel.disabled = st.lv; sel.style.opacity = st.lv ? '0.5' : '1';
+                }
+            });
+            el('bbMatchType').disabled = st.lv;
+            el('bbMatchType').style.opacity = st.lv ? '0.5' : '1';
+            updUI();
+            if (st.currentMatchId) {
+                st._isFresh = false;
+                saveToFirebase(st.lv);
+            }
+        };
+
+        // ─── MANUAL ADJUST MODAL ──────────────────────────────────────────────────
+        window.opMdBB = function () {
+            const cont = el('mdBbRosterCont');
+            cont.innerHTML = '';
+            const c1 = document.createElement('div');
+            const c2 = document.createElement('div');
+            c1.className = c2.className = 'md-team-panel';
+            c1.innerHTML = `<div class="md-lbl" style="color:#ff9900;">${teamDisplayLabel(st.t1.k)}</div>`;
+            c2.innerHTML = `<div class="md-lbl" style="color:#ff9900;text-align:right;">${teamDisplayLabel(st.t2.k)}</div>`;
+
+            const row = (p, v, s) => `<div class="md-p-item"><span>${p}</span><input type="number" class="md-p-ipt" data-side="${s}" data-name="${p}" value="${v}"></div>`;
+            (getRoster(st.t1.k) || []).forEach(p => c1.innerHTML += row(p, st.t1.p[p] || 0, 1));
+            (getRoster(st.t2.k) || []).forEach(p => c2.innerHTML += row(p, st.t2.p[p] || 0, 2));
+
+            cont.appendChild(c1);
+            cont.appendChild(c2);
+            el('bbAdjMd').style.display = 'flex';
+        };
+
+        window.clMdBB = () => el('bbAdjMd').style.display = 'none';
+
+        window.svMdBB = function () {
+            document.querySelectorAll('.md-p-ipt').forEach(i => {
+                const s = i.getAttribute('data-side');
+                const n = i.getAttribute('data-name');
+                const v = parseInt(i.value) || 0;
+                if (s === '1') st.t1.p[n] = v; else st.t2.p[n] = v;
+            });
+            st.t1.s = Object.values(st.t1.p).reduce((a, b) => a + b, 0);
+            st.t2.s = Object.values(st.t2.p).reduce((a, b) => a + b, 0);
+            updUI();
+            window.clMdBB();
+            if (st.currentMatchId && !st._isFresh) saveToFirebase(st.lv);
+        };
+
+        // ─── UI UPDATE ────────────────────────────────────────────────────────────
+        function updUI() {
+            el('bbT1S').textContent = st.t1.s;
+            el('bbT2S').textContent = st.t2.s;
+            el('bbCardPd').textContent = st.pd;
+            el('bbPdSel').value = st.pd;
+
+            const bBd = el('bbCardSt');
+            bBd.className = 'badge';
+            if (st.fn) {
+                bBd.textContent = 'FINISHED';
+                bBd.classList.add('st-fn');
+                el('bbCtrlCont').classList.add('m-ov');
+            } else {
+                el('bbCtrlCont').classList.remove('m-ov');
+                if (st.lv) { bBd.textContent = 'LIVE'; bBd.classList.add('st-lv'); }
+                else bBd.textContent = '';
+            }
+            el('bbLvBtn').classList.toggle('is-live', st.lv);
+            el('bbLvBtn').textContent = st.lv ? 'LIVE' : 'GO LIVE';
+
+            const c1 = el('bbT1StatCol'), c2 = el('bbT2StatCol');
+            c1.innerHTML = `<div class="bb-team-col-hdr">${teamLabel(st.t1.k) || 'TEAM 1'}</div>`;
+            c2.innerHTML = `<div class="bb-team-col-hdr tr">${teamLabel(st.t2.k) || 'TEAM 2'}</div>`;
+            Object.entries(st.t1.p).forEach(([p, pts]) => {
+                if (pts > 0) c1.innerHTML += `<div class="bb-p-stat-row"><span class="p-nm">${p}</span><span class="p-pts">${pts}</span></div>`;
+            });
+            Object.entries(st.t2.p).forEach(([p, pts]) => {
+                if (pts > 0) c2.innerHTML += `<div class="bb-p-stat-row"><span class="p-nm">${p}</span><span class="p-pts">${pts}</span></div>`;
+            });
+        }
+
+        // ─── RESET TO HOME ────────────────────────────────────────────────────────
+        window.resetToHome = function () {
+            if (st.lv) {
+                st.lv = false;
+                try {
+                    set(ref(db, 'matches/basketball/current/status'), '');
+                    if (st.currentMatchId) set(ref(db, `matches_archive/basketball/${st.currentMatchId}/status`), '');
+                } catch (e) { console.log(e); }
+            }
+
+            st = initState();
+
+            ['bbT1Sel', 'bbT2Sel', 'bbPdSel', 'bbP1Sel', 'bbP2Sel'].forEach(id => {
+                const e = el(id);
+                if (e) { e.selectedIndex = 0; e.disabled = false; e.style.opacity = '1'; }
+            });
+            populateTeamDropdown('bbT1Sel');
+            populateTeamDropdown('bbT2Sel');
+
+            const mt = el('bbMatchType');
+            if (mt) { mt.value = 'league'; mt.disabled = false; mt.style.opacity = '1'; }
+
+            el('bbT1S').textContent = '0'; el('bbT2S').textContent = '0';
+            el('bbT1Lbl').textContent = 'TEAM 1'; el('bbT2Lbl').textContent = 'TEAM 2';
+            el('bbSbCard').style.display = 'none';
+            el('bbCtrlCont').style.display = 'none';
+            el('bbLvBtn').style.display = 'none';
+            el('imgThumbnailRow').innerHTML = '';
+            el('imgSlotLabel').textContent = '0/3 slots used';
+
+            nav('home-p');
+        };
+
+        // ─── IMAGE UPLOAD ─────────────────────────────────────────────────────────
+        window.handleMatchImageUpload = async function (event) {
+            const IMGBB_API_KEY = 'a5ca90326606c5c5f0ca1854b1109064';
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            if (!st.currentMatchId) {
+                alert("Please set up the match teams first before uploading images.");
+                event.target.value = ''; return;
+            }
+
+            const mediaBox = document.querySelector('.panel-media-box');
+            let statusBar = document.getElementById('uploadInlineStatus');
+            if (statusBar) statusBar.remove();
+            if (mediaBox) {
+                statusBar = document.createElement('div');
+                statusBar.id = 'uploadInlineStatus';
+                statusBar.style.cssText = 'width:100%;margin-top:10px;display:flex;flex-direction:column;gap:6px;';
+                statusBar.innerHTML = `<div style="width:100%;height:4px;background:#1f232e;border-radius:2px;overflow:hidden;"><div id="uploadProgressBar" style="height:100%;width:5%;background:#ff9900;border-radius:2px;transition:width 0.4s ease;"></div></div><div id="uploadStatusText" style="color:#a0aec0;font-size:0.75rem;font-weight:600;text-align:center;"></div>`;
+                mediaBox.appendChild(statusBar);
+            }
+
+            const setStatus = (msg, pct) => {
+                const txt = document.getElementById('uploadStatusText');
+                const bar = document.getElementById('uploadProgressBar');
+                if (txt) txt.textContent = msg;
+                if (bar && pct !== undefined) bar.style.width = pct + '%';
+            };
+            const removeStatus = (delay = 3000) => {
+                setTimeout(() => { const s = document.getElementById('uploadInlineStatus'); if (s) s.remove(); }, delay);
+            };
+
+            function compressImage(file) {
+                return new Promise(resolve => {
+                    const MAX_DIM = 1200;
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const img = new Image();
+                        img.onload = () => {
+                            let { width, height } = img;
+                            if (width <= MAX_DIM && height <= MAX_DIM) { resolve(file); return; }
+                            if (width > height) { height = Math.round(height * MAX_DIM / width); width = MAX_DIM; }
+                            else { width = Math.round(width * MAX_DIM / height); height = MAX_DIM; }
+                            const canvas = document.createElement('canvas');
+                            canvas.width = width; canvas.height = height;
+                            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                            canvas.toBlob(blob => resolve(blob || file), 'image/jpeg', 0.78);
+                        };
+                        img.onerror = () => resolve(file);
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = () => resolve(file);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function uploadToImgBB(blob) {
+                const formData = new FormData();
+                const base64 = await new Promise(resolve => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.readAsDataURL(blob);
+                });
+                formData.append('image', base64);
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error(`ImgBB error: ${response.status}`);
+                const data = await response.json();
+                if (!data.success) throw new Error('ImgBB upload rejected');
+                return data.data.url;
+            }
+
+            let currentImages = st.uploadedImages || [];
+            const totalFiles = Math.min(files.length, 3);
+            let uploadedCount = 0;
+
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+                setStatus(`Compressing ${i + 1}/${totalFiles}…`, 10 + (i * 30));
+                let blob;
+                try { blob = await compressImage(file); } catch { blob = file; }
+                if (currentImages.length >= 3) currentImages.shift();
+                setStatus(`Uploading ${i + 1}/${totalFiles} · ${(blob.size / 1024).toFixed(0)} KB`, 20 + (i * 35));
+                try {
+                    const url = await uploadToImgBB(blob);
+                    currentImages.push(url);
+                    uploadedCount++;
+                    setStatus(`Done ${uploadedCount}/${totalFiles} ✓`, 60 + (uploadedCount * 15));
+                } catch (uploadErr) {
+                    setStatus(`✗ Failed: ${uploadErr.message}`, 100);
+                    removeStatus(4000);
+                    event.target.value = ''; return;
+                }
+            }
+
+            st.uploadedImages = currentImages;
+            const isHistoryEdit = !!(st.currentMatchId && !st._isFresh);
+            if (st.lv || isHistoryEdit) {
+                try {
+                    setStatus('Saving to database…', 95);
+                    await set(ref(db, `matches_archive/basketball/${st.currentMatchId}/uploadedImages`), currentImages);
+                    if (st.lv) await set(ref(db, `matches/basketball/current/uploadedImages`), currentImages);
+                    setStatus(`✓ Saved · ${currentImages.length}/3 slots`, 100);
+                } catch {
+                    setStatus('✗ DB save failed', 100);
+                }
+            } else {
+                setStatus(`Local Preview · ${currentImages.length}/3 slots`, 100);
+            }
+            removeStatus(3000);
+            refreshImageThumbnails(currentImages);
+            event.target.value = '';
+        };
+
+        window.removeMatchImage = async function (index) {
+            if (!st.uploadedImages) return;
+            st.uploadedImages.splice(index, 1);
+            const isHistoryEdit = !!(st.currentMatchId && !st._isFresh);
+            if (st.lv || isHistoryEdit) {
+                try {
+                    await set(ref(db, `matches_archive/basketball/${st.currentMatchId}/uploadedImages`), st.uploadedImages);
+                    if (st.lv) await set(ref(db, `matches/basketball/current/uploadedImages`), st.uploadedImages);
+                } catch (e) { console.error('Failed to sync image removal:', e); }
+            }
+            refreshImageThumbnails(st.uploadedImages);
+        };
+
+        function refreshImageThumbnails(images) {
+            const row = el('imgThumbnailRow');
+            const label = el('imgSlotLabel');
+            if (label) label.textContent = `${images.length}/3 slots used`;
+            if (!row) return;
+            row.innerHTML = '';
+            images.forEach((url, i) => {
+                const wrap = document.createElement('div');
+                wrap.style.cssText = 'position:relative;width:72px;height:72px;border-radius:6px;overflow:hidden;border:1px solid #242936;flex-shrink:0;';
+                wrap.innerHTML = `
+                    <img src="${url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">
+                    <div style="position:absolute;bottom:2px;left:2px;background:rgba(0,0,0,0.6);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:3px;">${i + 1}</div>
+                    <button onclick="removeMatchImage(${i})" style="position:absolute;top:2px;right:2px;background:rgba(239,68,68,0.85);color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1;z-index:5;">×</button>
+                `;
+                row.appendChild(wrap);
+            });
+        }
+
+        // ─── EDIT FROM HISTORY ────────────────────────────────────────────────────
+        window.editMatchFromHistory = function (matchId) {
+            get(ref(db, `matches_archive/basketball/${matchId}`)).then(snapshot => {
+                if (!snapshot.exists()) { alert('Match not found.'); return; }
+                const rec = snapshot.val();
+
+                populateTeamDropdown('bbT1Sel');
+                populateTeamDropdown('bbT2Sel');
+
+                st = initState();
+                st.t1.k = rec.team1 || '';
+                st.t2.k = rec.team2 || '';
+                st.lv = false;
+                st.fn = rec.fn === true || rec.status === 'FINAL';
+                st.currentMatchId = matchId;
+                st._isFresh = false;
+                st.uploadedImages = rec.uploadedImages || [];
+                st.createdAt = rec.createdAt || null;
+                st.matchType = rec.matchType || 'league';
+                st.t1.s = rec.team1Score || 0;
+                st.t2.s = rec.team2Score || 0;
+                st.pd = rec.period || '1st Quarter';
+                st.t1.p = {}; st.t2.p = {};
+                Object.values(rec.playerStats || {}).forEach(p => {
+                    if (p.team === rec.team1) st.t1.p[p.name] = p.pts;
+                    else st.t2.p[p.name] = p.pts;
+                });
+
+                st._prevP1 = {};
+                Object.entries(st.t1.p).forEach(([name, pts]) => {
+                    st._prevP1[`${st.t1.k}_${name}`.replace(/[.#$/[\]]/g, '_')] = pts;
+                });
+                Object.entries(st.t2.p).forEach(([name, pts]) => {
+                    st._prevP1[`${st.t2.k}_${name}`.replace(/[.#$/[\]]/g, '_')] = pts;
+                });
+
+                el('bbMatchType').value = rec.matchType || 'league';
+                el('bbMatchType').disabled = false;
+                el('bbMatchType').style.opacity = '1';
+
+                document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+                el('basket-p').classList.add('active');
+                window.scrollTo(0, 0);
+
+                el('bbT1Sel').value = rec.team1;
+                el('bbT2Sel').value = rec.team2;
+
+                const d1 = el('bbP1Sel'), d2 = el('bbP2Sel');
+                d1.innerHTML = ''; d2.innerHTML = '';
+                
+                const r1 = getRoster(rec.team1);
+                const r2 = getRoster(rec.team2);
+                if (r1) r1.forEach(p => { d1.options[d1.options.length] = new Option(p, p); });
+                if (r2) r2.forEach(p => { d2.options[d2.options.length] = new Option(p, p); });
+
+                el('bbT1Lbl').textContent = teamLabel(rec.team1);
+                el('bbT2Lbl').textContent = teamLabel(rec.team2);
+                el('bbT1Lg').src = getTeamLogo(rec.team1, rec.team2);
+                el('bbT2Lg').src = getTeamLogo(rec.team2, rec.team1);
+                el('bbSbCard').style.display = 'flex';
+                el('bbCtrlCont').style.display = 'flex';
+                el('bbLvBtn').style.display = 'flex';
+                el('bbLvBtn').classList.remove('is-live');
+
+                updUI();
+                refreshImageThumbnails(st.uploadedImages);
+
+            }).catch(() => alert('Could not load match for editing.'));
+        };
+
+        // ─── DELETE ───────────────────────────────────────────────────────────────
+        window.deleteMatchArchive = function (matchId) {
+            if (!confirm('Permanently delete this match from the database?')) return;
+
+            get(ref(db, `matches_archive/basketball/${matchId}`)).then(snap => {
+                const rec = snap.exists() ? snap.val() : null;
+                const reversal = rec ? Object.values(rec.playerStats || {}).map(p => {
+                    const safeKey = `${p.team}_${p.name}`.replace(/[.#$/[\]]/g, '_');
+                    return runTransaction(ref(db, `player_totals/basketball/${safeKey}`), (current) => {
+                        if (!current) return current;
+                        current.totalPoints = (current.totalPoints || 0) - (p.pts || 0);
+                        return current;
+                    });
+                }) : [];
+
+                return Promise.all(reversal).then(() => set(ref(db, `matches_archive/basketball/${matchId}`), null));
+            })
+                .then(() => get(ref(db, 'matches/basketball/current/matchId')).then(snap => {
+                    if (snap.exists() && snap.val() === matchId) {
+                        return set(ref(db, 'matches/basketball/current'), null);
+                    }
+                }))
+                .then(() => { alert('Match deleted.'); renderHistory(); renderPlayerTotals(); })
+                .catch(e => alert('Error deleting: ' + e.message));
+        };
+
+        // ─── RENDER HISTORY ───────────────────────────────────────────────────────
+        window.renderHistory = function () {
+            const histBox = el('adminHistList');
+            if (!histBox) return;
+            histBox.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">Loading…</div>`;
+
+            get(ref(db, 'matches_archive/basketball')).then(snapshot => {
+                if (!snapshot.exists()) {
+                    histBox.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">No history yet.</div>`;
+                    return;
+                }
+
+                const allMatches = Object.entries(snapshot.val())
+                    .map(([matchId, rec]) => ({ matchId, rec }))
+                    .sort((a, b) => {
+                        const aT = a.rec.createdAt || a.rec.lastUpdated || '';
+                        const bT = b.rec.createdAt || b.rec.lastUpdated || '';
+                        return bT.localeCompare(aT);
+                    });
+
+                if (!allMatches.length) {
+                    histBox.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">No history yet.</div>`;
+                    return;
+                }
+
+                histBox.innerHTML = '';
+                allMatches.forEach(({ matchId, rec }) => {
+                    const t1 = teamLabel(rec.team1 || '?');
+                    const t2 = teamLabel(rec.team2 || '?');
+
+                    const matchTypeLabel = { league: 'League', semi_final: 'Semi-Final', grand_final: 'Grand Final' };
+                    const matchTypeBadge = rec.matchType && rec.matchType !== 'league'
+                        ? `<span style="font-size:0.6rem;background:rgba(255,204,0,0.12);border:1px solid rgba(255,204,0,0.3);color:#ffcc00;padding:1px 5px;border-radius:4px;margin-left:4px;">${matchTypeLabel[rec.matchType] || rec.matchType}</span>`
+                        : '';
+
+                    const isFinal = rec.fn === true || rec.status === 'FINAL';
+                    const statusBadge = isFinal
+                        ? `<span style="font-size:0.6rem;background:rgba(0,255,204,0.1);border:1px solid rgba(0,255,204,0.2);color:#00ffcc;padding:1px 5px;border-radius:4px;margin-left:4px;">FINAL</span>`
+                        : rec.status === 'LIVE'
+                            ? `<span style="font-size:0.6rem;color:#ef4444;margin-left:4px;">● LIVE</span>` : '';
+
+                    const scoreLine = `${rec.team1Score ?? 0} — ${rec.team2Score ?? 0}${rec.period ? ' · ' + rec.period : ''}`;
+
+                    let timeStr = '';
+                    if (rec.createdAt || rec.lastUpdated) {
+                        timeStr = new Date(rec.createdAt || rec.lastUpdated).toLocaleString('en-IN', {
+                            day: '2-digit', month: 'short', year: 'numeric',
+                            hour: '2-digit', minute: '2-digit', hour12: true
+                        });
+                    }
+
+                    const item = document.createElement('div');
+                    item.className = 'hist-item';
+                    item.innerHTML = `
+                        <div class="hist-match-info">
+                            <div class="hist-teams" style="color:#ff9900;">
+                                <span style="font-size:0.62rem;font-weight:700;opacity:0.7;text-transform:uppercase;letter-spacing:0.5px;">Basketball</span>
+                                ${matchTypeBadge}&nbsp;${t1} vs ${t2}${statusBadge}
+                            </div>
+                            <div class="hist-scores">${scoreLine}</div>
+                            ${timeStr ? `<div style="font-size:0.68rem;color:#4a5568;margin-top:1px;">${timeStr}</div>` : ''}
+                        </div>
+                        <div style="display:flex;gap:6px;flex-shrink:0;">
+                            <button onclick="editMatchFromHistory('${matchId}')"
+                                style="background:rgba(66,153,225,0.1);border:1px solid rgba(66,153,225,0.3);color:#4299e1;font-size:0.7rem;font-weight:700;padding:6px 10px;border-radius:6px;cursor:pointer;">Edit</button>
+                            <button onclick="deleteMatchArchive('${matchId}')" class="hist-del-btn">Del</button>
+                        </div>`;
+                    histBox.appendChild(item);
+                });
+            }).catch(() => {
+                histBox.innerHTML = `<div style="color:#ef4444;font-size:0.8rem;text-align:center;padding:8px;">Error loading history.</div>`;
+            });
+        };
+
+        // ─── CUSTOM TEAM MANAGEMENT ───────────────────────────────────────────────
+        window.openCustomTeamModal = function() {
+            el('customTeamId').value = '';
+            el('customTeamName').value = '';
+            el('customTeamModalTitle').textContent = 'Create Custom Team';
+            el('btnSaveCustomTeam').textContent = 'Create Team';
+            
+            document.querySelectorAll('.custom-player-input').forEach(input => input.value = '');
+            el('customTeamModal').style.display = 'flex';
+        };
+
+        window.closeCustomTeamModal = function() {
+            el('customTeamModal').style.display = 'none';
+        };
+
+        window.saveCustomTeam = async function() {
+            const rawName = el('customTeamName').value.trim();
+            const name = capitalizeName(rawName);
+            if (!name) {
+                alert('Please enter a team name.');
+                return;
+            }
+
+            const players = [];
+            document.querySelectorAll('.custom-player-input').forEach(input => {
+                const val = input.value.trim();
+                if (val) players.push(capitalizeName(val));
+            });
+
+            if (players.length === 0) {
+                alert('Please enter at least 1 player.');
+                return;
+            }
+
+            const existingId = el('customTeamId').value;
+            const id = existingId || 'CUSTOM_' + Date.now();
+            const defaultLogo = 'https://i.ibb.co/twz81SPb/download-8-removebg-preview.png';
+
+            const teamData = {
+                id: id,
+                label: name,
+                logo: defaultLogo,
+                players: players
+            };
+
+            try {
+                await set(ref(db, `custom_teams/basketball/${id}`), teamData);
+                closeCustomTeamModal();
+                alert(existingId ? 'Team updated successfully!' : 'Team created successfully!');
+            } catch (e) {
+                alert('Error saving custom team: ' + e.message);
+            }
+        };
+
+        window.editCustomTeam = function(id) {
+            const team = CUSTOM_TEAMS[id];
+            if (!team) return;
+
+            el('customTeamId').value = id;
+            el('customTeamName').value = team.label;
+            el('customTeamModalTitle').textContent = 'Edit Custom Team';
+            el('btnSaveCustomTeam').textContent = 'Update Team';
+
+            const players = getRoster(id);
+            const inputs = document.querySelectorAll('.custom-player-input');
+            inputs.forEach((input, index) => {
+                input.value = players[index] || '';
+            });
+
+            el('customTeamModal').style.display = 'flex';
+        };
+
+        window.deleteCustomTeam = async function(id) {
+            if (!confirm(`Permanently delete custom team "${CUSTOM_TEAMS[id].label}"?`)) return;
+            try {
+                await set(ref(db, `custom_teams/basketball/${id}`), null);
+                alert('Team deleted.');
+            } catch (e) {
+                alert('Error deleting: ' + e.message);
+            }
+        };
+
+        window.renderCustomTeamsList = function () {
+            const list = el('customTeamsList');
+            if (!list) return;
+
+            const keys = Object.keys(CUSTOM_TEAMS);
+            if (keys.length === 0) {
+                list.innerHTML = `<div style="color:#718096;font-size:0.8rem;text-align:center;padding:8px;">No custom teams created yet.</div>`;
+                return;
+            }
+
+            list.innerHTML = '';
+            keys.forEach(k => {
+                const team = CUSTOM_TEAMS[k];
+                if (!team) return;
+
+                const playersArr = getRoster(k);
+
+                const item = document.createElement('div');
+                item.className = 'hist-item';
+                item.innerHTML = `
+                    <div class="hist-match-info">
+                        <div class="hist-teams" style="color:#ff9900; display:flex; align-items:center; gap:8px;">
+                            <img src="${team.logo || customLogoA}" style="width:20px; height:20px; object-fit:contain;" onerror="this.style.display='none'">
+                            <span>${team.label || 'Unnamed Team'}</span>
+                        </div>
+                        <div class="hist-scores" style="font-size:0.75rem; color:#a0aec0; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            Players: ${playersArr.join(', ')}
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:6px; flex-shrink:0;">
+                        <button onclick="editCustomTeam('${k}')" 
+                            style="background:rgba(66,153,225,0.1); border:1px solid rgba(66,153,225,0.3); color:#4299e1; font-size:0.7rem; font-weight:700; padding:6px 10px; border-radius:6px; cursor:pointer;">Edit</button>
+                        <button onclick="deleteCustomTeam('${k}')" class="hist-del-btn">Del</button>
+                    </div>
+                `;
+                list.appendChild(item);
+            });
+        };
+
+        // ─── INIT & FIREBASE LISTENERS ────────────────────────────────────────────
+        populateTeamDropdown('bbT1Sel');
+        populateTeamDropdown('bbT2Sel');
+
+        // Listen for Custom Teams
+        onValue(ref(db, 'custom_teams/basketball'), (snapshot) => {
+            CUSTOM_TEAMS = snapshot.exists() ? snapshot.val() : {};
+            renderCustomTeamsList();
+            populateTeamDropdown('bbT1Sel');
+            populateTeamDropdown('bbT2Sel');
+        }, (error) => {
+            console.error("Firebase Custom Teams onValue error:", error);
+            alert("Database read error: " + error.message);
+        });
+
+        renderHistory();
+        renderPlayerTotals();
+    </script>
+</body>
+</html>
