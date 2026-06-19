@@ -121,7 +121,7 @@
         <div style="position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;z-index:1;touch-action:pan-y;">
             <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:80px 20px 160px 20px;">
                 <div style="font-size:44px;font-weight:900;letter-spacing:-1px;text-transform:uppercase;color:#FFCC00;text-shadow:2px 2px 0 #000,4px 4px 0 #000;">Results</div>
-                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;">Basketball · All Matches</div>
+                <div style="color:rgba(255,255,255,0.25);font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;"></div>
                 <div style="width:90%;max-width:440px;border-radius:20px;padding:40px 20px;background:rgba(15,15,22,0.6);border:1px solid rgba(255,255,255,0.07);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;">
                     <div style="font-size:36px;opacity:0.4;">🏀</div>
                     <div style="color:#6c7075;font-size:14px;font-weight:600;text-transform:uppercase;letter-spacing:2px;">No finished matches yet</div>
@@ -145,7 +145,7 @@
         <div id="homehero" style="position:relative;width:100%;height:100vh;flex-shrink:0;overflow:hidden;will-change:transform;">
             <img id="heroBg" src="https://i.ibb.co/Nnt4wTdZ/download-7.jpg"
                  style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;will-change:transform;transform-origin:center center;" alt="">
-            <div style="position:absolute;inset:0;background:rgba(0,0,0,0.35);"></div>
+            <div style="position:absolute;inset:0;background:rgba(0, 0, 0, 0.35);"></div>
             <div id="heroLogo" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);will-change:transform;display:flex;align-items:center;justify-content:center;">
                 <img src="https://i.ibb.co/JF8QyMRn/CDA6-D670-E2-B7-46-AF-B471-654-BEF01-A556.png"
                      style="width:230px;height:230px;object-fit:contain;filter:drop-shadow(0 0 30px rgba(255,204,0,0.6));border-radius:50%;" alt="Logo">
@@ -218,16 +218,18 @@
         <div class="standings-scroll">
             <div class="standings-inner">
                 <div class="standings-page-title">Standings</div>
+                
+                <!-- TEAM STANDINGS -->
                 <div class="glass-card">
-                    <h2 class="card-title">Team Standings</h2>
+                    <h2 class="card-title">Team Standings (GBL)</h2>
                     <table>
                         <thead>
                             <tr>
                                 <th class="col-rank">#</th>
                                 <th>Team</th>
-                                <th class="text-center">W</th>
-                                <th class="text-center">L</th>
-                                <th class="text-right">PCT</th>
+                                <th class="text-center" style="width: 10%;">W</th>
+                                <th class="text-center" style="width: 10%;">L</th>
+                                <th class="text-right" style="width: 12%;">PCT</th>
                             </tr>
                         </thead>
                         <tbody id="standingsTableBody">
@@ -235,23 +237,45 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- LEADING SCORERS -->
                 <div class="glass-card">
-                    <h2 class="card-title">Leading Scorers</h2>
+                    <h2 class="card-title">Leading Scorers (GBL)</h2>
                     <table>
                         <thead>
                             <tr>
                                 <th class="col-rank">#</th>
                                 <th>Player</th>
-                                <th class="text-center">Team</th>
-                                <th class="text-right">PTS</th>
-                                <th class="text-right" style="color:rgba(250, 248, 242, 0.6);">PPG</th>
+                                <th class="text-center" style="width: 20%;">Team</th>
+                                <th class="text-right" style="width: 10%;">GP</th>
+                                <th class="text-right" style="width: 12%;">PTS</th>
+                                <th class="text-right" style="width: 15%; color:rgba(250, 248, 242, 0.6);">PPG</th>
                             </tr>
                         </thead>
                         <tbody id="scorersTableBody">
-                            <tr><td colspan="4" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">Loading...</td></tr>
+                            <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">Loading...</td></tr>
                         </tbody>
                     </table>
                     <button class="show-more-btn" id="showMoreBtn" style="display:none;" onclick="toggleScorers()">Show more</button>
+                </div>
+
+                <!-- TOP BALLERS -->
+                <div class="glass-card">
+                    <h2 class="card-title">Top Ballers</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-rank">#</th>
+                                <th>Player</th>
+                                <th class="text-right" style="width: 12%;">GP</th>
+                                <th class="text-right" style="width: 15%;">PTS</th>
+                                <th class="text-right" style="width: 18%; color:#FFCC00; font-weight:700;">PPG</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topBallersTableBody">
+                            <tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">Loading...</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -403,9 +427,37 @@
         ADH:'https://i.ibb.co/6RdWHBQL/IMG-4241.png',
         PRJ:'https://i.ibb.co/FLvxMZgV/IMG-4242.png'
     };
+
+    let _customTeamsCache = {};
+    let _currentLiveCache = null;
+    let _archiveCache = {};
+
+    function capitalizeName(str) {
+        if (!str) return '';
+        return str.trim().split(/\s+/)
+                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                  .join(' ');
+    }
+
+    function getTeamName(teamId) {
+        if (!teamId) return '';
+        if (_customTeamsCache && _customTeamsCache[teamId] && _customTeamsCache[teamId].label) {
+            return _customTeamsCache[teamId].label;
+        }
+        return teamId;
+    }
+
+    // Helper to evaluate if a team code represents a custom team
+    const isCustomTeam = (teamKey) => {
+        if (!teamKey) return true;
+        const keyUpper = String(teamKey).toUpperCase();
+        return keyUpper.startsWith('CUSTOM_') || !['ABH', 'VYV', 'ADH', 'PRJ', 'TEAM1', 'TEAM2', 'TEAM3', 'TEAM4'].includes(keyUpper);
+    };
+
     function getLogo(code,rec){
         if(rec?.team1===code&&rec?.team1Logo)return rec.team1Logo;
         if(rec?.team2===code&&rec?.team2Logo)return rec.team2Logo;
+        if(_customTeamsCache && _customTeamsCache[code] && _customTeamsCache[code].logo) return _customTeamsCache[code].logo;
         return logos[String(code).replace(/-[BG]$/i,'').toUpperCase()]||'';
     }
     function mtLabel(mt){ return !mt||mt==='league'?'League':mt==='semi_final'?'Semi-Final':'Grand Final'; }
@@ -416,7 +468,7 @@
             : `<span style="color:#00ffcc;font-size:13px;font-weight:700;background:rgba(0,255,204,0.1);border:1px solid rgba(0,255,204,0.2);border-radius:6px;padding:2px 7px;">FINISHED</span>`;
         let t1p='',t2p='';
         if(playerStats){ Object.values(playerStats).forEach(p=>{ const r=`<div style="display:flex;justify-content:space-between;width:100%;align-items:center;margin-bottom:3px;"><span style="font-size:11px;color:#b0b3b8;">${p.name}</span><span style="font-size:11px;font-weight:700;color:#fff;">${p.pts}</span></div>`; if(p.team===t1)t1p+=r; else t2p+=r; }); }
-        const trackerHTML = (t1p||t2p)?`<div style="display:flex;width:100%;margin-top:16px;border-radius:16px;padding:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.05);gap:16px;"><div style="width:50%;display:flex;flex-direction:column;gap:2px;border-right:1px solid rgba(255,255,255,0.08);padding-right:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${t1}</div>${t1p}</div><div style="width:50%;display:flex;flex-direction:column;gap:2px;padding-left:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${t2}</div>${t2p}</div></div>`:'';
+        const trackerHTML = (t1p||t2p)?`<div style="display:flex;width:100%;margin-top:16px;border-radius:16px;padding:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.05);gap:16px;"><div style="width:50%;display:flex;flex-direction:column;gap:2px;border-right:1px solid rgba(255,255,255,0.08);padding-right:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${getTeamName(t1)}</div>${t1p}</div><div style="width:50%;display:flex;flex-direction:column;gap:2px;padding-left:8px;"><div style="font-size:12px;font-weight:800;color:#fff;text-transform:uppercase;margin-bottom:6px;">${getTeamName(t2)}</div>${t2p}</div></div>`:'';
         return `<div style="width:100%;border-radius:24px;padding:22px 20px 18px;background:rgba(15,15,22,0.55);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);border:1px solid rgba(255,255,255,0.08);box-shadow:2px 2px 0 #000,4px 4px 0 #000,6px 6px 0 #000,0 20px 40px rgba(0,0,0,0.65);${isLive?'animation:cardFloat 4s ease-in-out infinite;':''}">
             <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:6px;flex-wrap:wrap;">
                 <span style="color:#fff;font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Basketball</span>
@@ -425,23 +477,24 @@
                 ${statusHTML}
             </div>
             <div style="width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);margin:12px 0 18px;"></div>
-            <div style="display:flex;align-items:center;justify-content:space-between;width:100%;position:relative;margin-bottom:12px;">
-                <div style="display:flex;flex-direction:column;align-items:center;width:36%;gap:6px;">
-                    <img src="${logo1}" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
-                    <div style="color:#fff;font-weight:700;font-size:14px;text-align:center;">${t1}</div>
+            
+            <!-- STABLE SCORING LAYOUT (No Absolute Overlap for 100s) -->
+            <div style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:12px;gap:8px;">
+                <div style="display:flex;flex-direction:column;align-items:center;width:33%;gap:6px;min-width:0;">
+                    <img src="${logo1}" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
+                    <div style="color:#fff;font-weight:700;font-size:13px;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${getTeamName(t1)}</div>
                 </div>
-                <div style="display:flex;flex-direction:column;width:20%;align-items:flex-start;">
-                    <span style="color:#fff;font-size:32px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35);">${sc1}</span>
+                <div style="display:flex;align-items:center;justify-content:center;gap:12px;width:34%;flex-shrink:0;">
+                    <span style="color:#fff;font-size:28px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35); text-align:right; width:45px; display:inline-block;">${sc1}</span>
+                    <span style="color:#6c7075;font-weight:800;font-size:12px;letter-spacing:1px;flex-shrink:0;">VS</span>
+                    <span style="color:#fff;font-size:28px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35); text-align:left; width:45px; display:inline-block;">${sc2}</span>
                 </div>
-                <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#6c7075;font-weight:800;font-size:13px;">VS</div>
-                <div style="display:flex;flex-direction:column;width:20%;align-items:flex-end;">
-                    <span style="color:#fff;font-size:32px;font-weight:800;line-height:1;text-shadow:0 0 10px rgba(255,255,255,0.35);">${sc2}</span>
-                </div>
-                <div style="display:flex;flex-direction:column;align-items:center;width:36%;gap:6px;">
-                    <img src="${logo2}" style="width:80px;height:80px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
-                    <div style="color:#fff;font-weight:700;font-size:14px;text-align:center;">${t2}</div>
+                <div style="display:flex;flex-direction:column;align-items:center;width:33%;gap:6px;min-width:0;">
+                    <img src="${logo2}" style="width:72px;height:72px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.5));" onerror="this.style.display='none'">
+                    <div style="color:#fff;font-weight:700;font-size:13px;text-align:center;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${getTeamName(t2)}</div>
                 </div>
             </div>
+
             ${winnerMsg?`<div style="width:100%;text-align:center;padding:10px;border-radius:10px;background:rgba(0,255,204,0.08);border:1px solid rgba(0,255,204,0.2);color:#00ffcc;font-size:13px;font-weight:600;margin-top:8px;">${winnerMsg}</div>`:''}
             ${trackerHTML}
         </div>`;
@@ -449,6 +502,7 @@
 
     /* ── LIVE ── */
     function renderLive(rec){
+        _currentLiveCache = rec;
         const noBox = document.getElementById('noLiveBox');
         const wrap  = document.getElementById('basketballCardWrap');
         if(!noBox||!wrap) return;
@@ -459,7 +513,7 @@
         const t1=rec.team1,t2=rec.team2,sc1=rec.team1Score??0,sc2=rec.team2Score??0;
         const matchOver=(rec.period==='Full Time')||rec.status==='FINAL';
         let wm='';
-        if(matchOver&&sc1!==sc2){const w=sc1>sc2?t1:t2,m=Math.abs(sc1-sc2);wm=`${w} won by ${m} point${m!==1?'s':''}`;}
+        if(matchOver&&sc1!==sc2){const w=sc1>sc2?t1:t2,m=Math.abs(sc1-sc2);wm=`${getTeamName(w)} won by ${m} point${m!==1?'s':''}`;}
         else if(matchOver) wm='Match Tied!';
         wrap.innerHTML=buildCard(t1,t2,getLogo(t1,rec),getLogo(t2,rec),sc1,sc2,rec.period||'',rec.matchType,wm,rec.playerStats,rec.status==='LIVE');
     }
@@ -478,7 +532,7 @@
         matches.forEach(rec=>{
             const t1=rec.team1||'--',t2=rec.team2||'--',sc1=rec.team1Score??0,sc2=rec.team2Score??0;
             let wm='';
-            if(+sc1!==+sc2){const w=+sc1>+sc2?t1:t2,m=Math.abs(+sc1-+sc2);wm=`${w} won by ${m} point${m!==1?'s':''}`;}
+            if(+sc1!==+sc2){const w=+sc1>+sc2?t1:t2,m=Math.abs(+sc1-+sc2);wm=`${getTeamName(w)} won by ${m} point${m!==1?'s':''}`;}
             else wm='Match Tied!';
             const div=document.createElement('div');
             div.className='res-card'; div.style.cssText='width:90%;max-width:440px;';
@@ -497,6 +551,10 @@
             if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
             const t1=m.team1, t2=m.team2;
             if(!t1||!t2) return;
+
+            // Requirement 1: Exclude matches where any participating team is custom
+            if (isCustomTeam(t1) || isCustomTeam(t2)) return;
+
             if(!record[t1]) record[t1]={w:0,l:0};
             if(!record[t2]) record[t2]={w:0,l:0};
             const sc1=+(m.team1Score||0), sc2=+(m.team2Score||0);
@@ -518,7 +576,7 @@
             const pctStr = t.pct===1?'1.000':t.pct===0?'.000':t.pct.toFixed(3).replace('0.','.') ;
             return `<tr>
                 <td class="col-rank">${i+1}</td>
-                <td>${t.name}</td>
+                <td>${getTeamName(t.name)}</td>
                 <td class="text-center">${t.w}</td>
                 <td class="text-center">${t.l}</td>
                 <td class="text-right col-pct">${pctStr}</td>
@@ -526,7 +584,7 @@
         }).join('');
     }
 
-    /* ── LEADING SCORERS ── */
+    /* ── LEADING SCORERS (GBL - OFFICIAL ONLY & REAL-TIME UPDATING) ── */
     const VISIBLE_SCORERS = 5;
     let scorersExpanded = false;
 
@@ -535,30 +593,57 @@
         const btn    = document.getElementById('showMoreBtn');
         if(!tbody||!btn) return;
 
+        // Requirement 1: Calculate games played and points strictly ignoring custom team match stats
         const gamesPlayed = {};
+        const totalPoints = {};
+        const playerTeams = {};
+
         Object.values(archiveData||{}).forEach(m=>{
-            if(!(m.fn===true||m.fn==='true'||m.status==='FINAL')) return;
+            // Skip matches involving any custom team
+            if (isCustomTeam(m.team1) || isCustomTeam(m.team2)) return;
             if(!m.playerStats) return;
+
             Object.values(m.playerStats).forEach(p=>{
-                if(p.name) gamesPlayed[p.name] = (gamesPlayed[p.name]||0)+1;
+                if(p.name) {
+                    const normName = capitalizeName(p.name);
+                    
+                    if (!gamesPlayed[normName]) {
+                        gamesPlayed[normName] = new Set();
+                    }
+                    gamesPlayed[normName].add(m.matchId || m.createdAt || Math.random().toString());
+
+                    totalPoints[normName] = (totalPoints[normName]||0)+(p.pts||0);
+                    playerTeams[normName] = p.team || '—';
+                }
             });
         });
 
-        const players = Object.values(data||{})
-            .sort((a,b)=>(b.totalPoints||0)-(a.totalPoints||0));
+        const players = Object.keys(totalPoints)
+            .map(name => {
+                const gp = gamesPlayed[name] ? gamesPlayed[name].size : 1;
+                return {
+                    name: name,
+                    team: playerTeams[name],
+                    gp: gp,
+                    totalPoints: totalPoints[name]
+                };
+            })
+            .filter(p => p.totalPoints > 0)
+            .sort((a,b)=> b.totalPoints - a.totalPoints);
 
         if(!players.length){
-            tbody.innerHTML=`<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">No data yet</td></tr>`;
+            tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">No data yet</td></tr>`;
             btn.style.display='none'; return;
         }
 
         tbody.innerHTML = players.map((p,i)=>{
-            const gp = gamesPlayed[p.name]||1;
-            const ppg = ((p.totalPoints||0)/gp).toFixed(1);
+            const gp = p.gp || 1;
+            const ppg = (p.totalPoints / gp).toFixed(1);
             return `<tr class="${i>=VISIBLE_SCORERS&&!scorersExpanded?'hidden-row':''}">
                 <td class="col-rank">${i+1}</td>
                 <td>${p.name||'—'}</td>
-                <td class="text-center" style="color:rgba(255,255,255,0.5);font-size:0.8rem;">${p.team||'—'}</td>
+                <td class="text-center" style="color:rgba(255,255,255,0.5);font-size:0.8rem;">${getTeamName(p.team)||'—'}</td>
+                <td class="text-right" style="color:rgba(255,255,255,0.6);">${gp}</td>
                 <td class="text-right col-pts-val">${p.totalPoints||0}</td>
                 <td class="text-right" style="color:#FFCC00;font-weight:700;">${ppg}</td>
             </tr>`;
@@ -570,6 +655,63 @@
         } else {
             btn.style.display='none';
         }
+    }
+
+    /* ── TOP BALLERS PPG (OVERALL - BOTH OFFICIAL AND UNOFFICIAL & REAL-TIME UPDATING) ── */
+    function renderTopBallers(archiveData) {
+        const tbody = document.getElementById('topBallersTableBody');
+        if (!tbody) return;
+
+        const playerStats = {};
+
+        Object.values(archiveData || {}).forEach(m => {
+            if (!m.playerStats) return;
+
+            Object.values(m.playerStats).forEach(p => {
+                if (p.name) {
+                    const normName = capitalizeName(p.name);
+                    if (!playerStats[normName]) {
+                        playerStats[normName] = {
+                            name: normName,
+                            pts: 0,
+                            matchIds: new Set()
+                        };
+                    }
+                    playerStats[normName].pts += (p.pts || 0);
+                    playerStats[normName].matchIds.add(m.matchId || m.createdAt || Math.random().toString());
+                }
+            });
+        });
+
+        const players = Object.values(playerStats)
+            .map(p => {
+                const gp = p.matchIds.size || 1;
+                const ppg = p.pts / gp;
+                return {
+                    name: p.name,
+                    gp: gp,
+                    pts: p.pts,
+                    ppg: ppg
+                };
+            })
+            .filter(p => p.pts > 0)
+            .sort((a, b) => b.ppg - a.ppg || b.pts - a.pts)
+            .slice(0, 5); // Display top 5 names strictly
+
+        if (!players.length) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,0.3);padding:20px 0;">No data yet</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = players.map((p, i) => {
+            return `<tr>
+                <td class="col-rank">${i + 1}</td>
+                <td>${p.name}</td>
+                <td class="text-right" style="color:rgba(255,255,255,0.6);">${p.gp}</td>
+                <td class="text-right col-pts-val">${p.pts}</td>
+                <td class="text-right" style="color:#FFCC00;font-weight:700;">${p.ppg.toFixed(1)}</td>
+            </tr>`;
+        }).join('');
     }
 
     window.toggleScorers = function(){
@@ -584,14 +726,28 @@
         if(btn) btn.textContent = scorersExpanded ? 'Show Less ▴' : `Show All ${total} Scorers ▾`;
     };
 
-    let _archiveCache = {};
+    onValue(ref(db, 'custom_teams/basketball'), snap => {
+        _customTeamsCache = snap.exists() ? snap.val() : {};
+        if (_currentLiveCache) {
+            renderLive(_currentLiveCache);
+        }
+        if (_archiveCache) {
+            renderResults(_archiveCache);
+            renderStandings(_archiveCache);
+            renderScorers(null, _archiveCache);
+            renderTopBallers(_archiveCache);
+        }
+    });
+
     onValue(ref(db,'matches/basketball/current'),         snap=>renderLive(snap.exists()?snap.val():null));
     onValue(ref(db,'matches_archive/basketball'),         snap=>{
         _archiveCache = snap.exists()?snap.val():{};
         renderResults(_archiveCache);
         renderStandings(_archiveCache);
+        renderScorers(null, _archiveCache);
+        renderTopBallers(_archiveCache);
     });
-    onValue(ref(db,'player_totals/basketball'),           snap=>renderScorers(snap.exists()?snap.val():{}, _archiveCache));
+    onValue(ref(db,'player_totals/basketball'),           snap=>renderScorers(null, _archiveCache));
 
     window.addEventListener('liveRefreshRequested', ()=>{
         get(ref(db,'matches/basketball/current')).then(s=>renderLive(s.exists()?s.val():null));
